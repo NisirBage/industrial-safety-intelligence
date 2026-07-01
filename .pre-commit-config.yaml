@@ -1,0 +1,21 @@
+# Exists so lint/format/type violations are caught before a commit
+# lands, not discovered later in CI (.github/workflows/ci.yml runs the
+# same checks as the CI backstop for anyone who skips hooks).
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic-settings, fastapi]

@@ -1,0 +1,34 @@
+# Exists so every push/PR fails fast on lint, type, or test
+# regressions. This is M0's "CI pipeline that runs lint + a trivial
+# test on every push" deliverable.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Black
+        run: black --check .
+
+      - name: Mypy
+        run: mypy src
+
+      - name: Pytest
+        run: pytest
