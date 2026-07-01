@@ -3,20 +3,24 @@
 Exists so a fresh database can be made runnable with one command
 (M1's stated outcome). The JSON fixture is the single source of demo
 data; this module only loads it and resolves each human-readable id
-(e.g. ``"zone-tank-farm"``) to a deterministic UUID via ``uuid.uuid5``,
-so the same fixture id always maps to the same primary key.
+(e.g. ``"zone-tank-farm"``) to a deterministic UUID.
 
 Idempotency ("safe to re-run", M1's completion criterion) follows
 directly from that determinism plus the repositories' ``merge()``-based
 ``create()``: re-running this script resolves to the same rows and
 updates them in place instead of raising a duplicate-key error.
+
+Id resolution moved to ``src/domain/simulation/ids.py`` in M2, so
+scenario files can resolve the exact same zone/sensor/worker ids this
+script inserts - see that module's docstring. This import is the only
+change M2 made to this file; nothing else here changed behavior.
 """
 
 import json
-import uuid
 from datetime import date, datetime
 from pathlib import Path
 
+from src.domain.simulation.ids import resolve_id as _id
 from src.infra.db.models.equipment import Equipment
 from src.infra.db.models.incident import Incident
 from src.infra.db.models.permit import Permit
@@ -35,14 +39,7 @@ from src.infra.db.repositories import (
 )
 from src.infra.db.session import get_session
 
-# Fixed, arbitrary namespace UUID - only its stability matters, not its value.
-SEED_NAMESPACE = uuid.UUID("8f14e45f-ceea-4a3d-8b0f-49b1f6a0c1a1")
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "demo_plant.json"
-
-
-def _id(key: str) -> uuid.UUID:
-    """Resolve a fixture's human-readable id to a deterministic UUID."""
-    return uuid.uuid5(SEED_NAMESPACE, key)
 
 
 def seed() -> None:

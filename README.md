@@ -9,10 +9,13 @@ for the reserved location of that engine).
 ## Status
 
 **M0 — Engineering foundations & repo scaffold: complete.**
-**M1 — Data model & persistence layer: complete.** Ten tables, an
-Alembic migration set, typed repositories, and a demo-plant seed
-script. Still no agent, orchestrator, or API logic. See
-`docs/roadmap.md` for what's deliberately deferred and out of scope.
+**M1 — Data model & persistence layer: complete.**
+**M2 — Simulation engine & synthetic data generator: complete.**
+SimClock, three pure curve generators, a scenario YAML schema/loader,
+and a runner that persists a deterministic, replayable event sequence
+through M1's repositories. Still no agent, orchestrator, or API
+logic. See `docs/roadmap.md` for what's deliberately deferred and out
+of scope.
 
 ## Quick start
 
@@ -45,6 +48,12 @@ Postgres), build the schema and load the demo plant:
 ```bash
 alembic upgrade head
 python -m src.infra.db.seed
+```
+
+Then run the authored demo scenario:
+
+```bash
+python -c "from pathlib import Path; from src.services.simulation_runner import run_scenario; run_scenario(Path('scenarios/demo_vizag_clairton.yaml'))"
 ```
 
 ## Repository layout

@@ -1,0 +1,43 @@
+# Demo scenario. Per the Master Plan's repository design, this file
+# is both the live-demo script AND the fixture M5's golden-scenario
+# regression test replays - one file, so the two can never drift
+# apart. Reuses the M1 demo plant's already-seeded zones, sensors,
+# and workers (tests/fixtures/demo_plant.json) rather than inventing
+# new ones, so it only needs `python -m src.infra.db.seed` to have run
+# first. Loosely inspired by the Technical Review's Section 9 script;
+# gas types/zones are simplified to what the M1 seed data actually
+# provides rather than transcribed literally.
+
+seed: 42
+start_time: "2026-07-01T08:00:00+00:00"
+
+permit_events:
+  - name: hotwork_permit_issued
+    zone: zone-tank-farm
+    sim_time: 5
+    permit_type: hot_work
+    authorizing_officer: worker-so-1
+    duration_minutes: 480
+
+sensor_events:
+  - name: co_pressure_rise
+    zone: zone-compressor-house
+    gas_type: CO
+    sim_time: 12
+    duration_minutes: 18
+    sample_interval_minutes: 2
+    curve: exponential_rise
+    params:
+      start_value: 5
+      rate: 0.08
+
+  - name: ch4_tank_farm_rise
+    zone: zone-tank-farm
+    gas_type: CH4
+    sim_time: 18
+    duration_minutes: 11
+    sample_interval_minutes: 1
+    curve: linear_ramp
+    params:
+      start_value: 2
+      slope: 0.5

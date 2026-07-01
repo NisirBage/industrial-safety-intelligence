@@ -2,6 +2,7 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.infra.db.models.sensor import Sensor
@@ -13,6 +14,20 @@ class SensorRepository:
 
     def get(self, sensor_id: uuid.UUID) -> Sensor | None:
         return self._session.get(Sensor, sensor_id)
+
+    def get_by_zone_and_gas(self, zone_id: uuid.UUID, gas_type: str) -> Sensor | None:
+        """Resolve which sensor in a zone monitors a given gas type.
+
+        Added in M2: scenario events target a zone + gas type (per the
+        Master Plan's own scenario-file wording), not a sensor UUID,
+        so the simulation runner needs this to find which sensor a
+        generated reading belongs to. Assumes at most one sensor per
+        (zone, gas_type) pair, true of the M1 demo plant; there is no
+        database-level uniqueness constraint enforcing this, since
+        that would be a schema change beyond what M2 approved.
+        """
+        stmt = select(Sensor).where(Sensor.zone_id == zone_id, Sensor.gas_type == gas_type)
+        return self._session.scalars(stmt).first()
 
     def create(self, sensor: Sensor) -> Sensor:
         merged = self._session.merge(sensor)
