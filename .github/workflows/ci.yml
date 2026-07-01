@@ -1,6 +1,8 @@
 # Exists so every push/PR fails fast on lint, type, or test
 # regressions. This is M0's "CI pipeline that runs lint + a trivial
-# test on every push" deliverable.
+# test on every push" deliverable. The postgres service was added in
+# M1, whose own testing requirement is integration tests against a
+# real database, not a mock.
 
 name: CI
 
@@ -11,6 +13,22 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: isip
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/isip
     steps:
       - uses: actions/checkout@v4
 

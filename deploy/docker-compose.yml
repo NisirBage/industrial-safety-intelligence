@@ -54,6 +54,10 @@ services:
       dockerfile: deploy/Dockerfile.backend
     env_file:
       - ../.env
+    environment:
+      # Overrides .env's host-relative default: containers reach the
+      # db service by its Compose service name, never by localhost.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-isip}
     ports:
       - "8000:8000"
     depends_on:

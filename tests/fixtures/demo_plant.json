@@ -1,0 +1,77 @@
+{
+  "zones": [
+    {
+      "id": "zone-compressor-house",
+      "name": "Compressor House",
+      "oisd_area_classification": "zone_1",
+      "plant_section": "Utilities"
+    },
+    {
+      "id": "zone-control-room",
+      "name": "Control Room",
+      "oisd_area_classification": "unclassified",
+      "plant_section": "Administration"
+    },
+    {
+      "id": "zone-tank-farm",
+      "name": "Tank Farm",
+      "oisd_area_classification": "zone_0",
+      "plant_section": "Storage"
+    }
+  ],
+  "zone_adjacency": [
+    { "zone": "zone-compressor-house", "adjacent_zone": "zone-tank-farm" },
+    { "zone": "zone-tank-farm", "adjacent_zone": "zone-compressor-house" }
+  ],
+  "sensors": [
+    {
+      "id": "sensor-ch-co-1",
+      "zone": "zone-compressor-house",
+      "gas_type": "CO",
+      "alarm_threshold": 35
+    },
+    {
+      "id": "sensor-tf-ch4-1",
+      "zone": "zone-tank-farm",
+      "gas_type": "CH4",
+      "alarm_threshold": 10
+    }
+  ],
+  "workers": [
+    { "id": "worker-op-1", "role": "operator", "current_zone": "zone-compressor-house" },
+    { "id": "worker-so-1", "role": "safety_officer", "current_zone": "zone-control-room" }
+  ],
+  "equipment": [
+    {
+      "id": "equip-compressor-1",
+      "zone": "zone-compressor-house",
+      "equipment_type": "compressor",
+      "isolation_status": "active"
+    },
+    {
+      "id": "equip-valve-1",
+      "zone": "zone-tank-farm",
+      "equipment_type": "valve",
+      "isolation_status": "isolated"
+    }
+  ],
+  "permits": [
+    {
+      "id": "permit-hotwork-1",
+      "permit_type": "hot_work",
+      "zone": "zone-tank-farm",
+      "authorizing_officer": "worker-so-1",
+      "issued_at": "2026-07-01T08:00:00+00:00",
+      "expires_at": "2026-07-01T16:00:00+00:00"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "incident-near-miss-1",
+      "source": "internal_near_miss",
+      "description": "Gas alarm triggered during maintenance window, no injuries.",
+      "linked_zone": "zone-compressor-house",
+      "date": "2026-06-15"
+    }
+  ]
+}
