@@ -108,7 +108,7 @@ The Compound Risk Engine's output history. M1 creates this table; M5
 | timestamp | timestamptz, part of composite PK | hypertable partition key |
 | compound_risk_score | numeric | |
 | confidence | numeric | |
-| tier | text, CHECK | watch / elevated / critical |
+| tier | text, CHECK | normal / watch / elevated / critical (widened by migration 0002 to include `normal`, the Tiering Engine's default state for a calm zone) |
 | justification | jsonb | frozen shape below |
 
 `justification` shape (Master Plan A.4), a contract for M5's writer

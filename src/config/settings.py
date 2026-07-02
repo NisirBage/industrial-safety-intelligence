@@ -23,6 +23,11 @@ class Settings(BaseSettings):
 
     app_name: str = "industrial-safety-intelligence"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/isip"
+    # M8's dashboard dev server origin. Override via env for any other
+    # deployment - never widened to "*" here, since the API is served
+    # over plain HTTP in development and a wildcard origin would allow
+    # any site to read responses from a user's browser.
+    cors_allowed_origins: list[str] = ["http://localhost:5180"]
 
 
 @lru_cache

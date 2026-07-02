@@ -13,6 +13,16 @@ docstring.
 "interaction_bonus_applied": float, "tier_before": str, "tier_after": str}``.
 This is a contract for M5's writer and M6/M11's readers to follow; it
 is not enforced at the database level since JSONB is schemaless.
+
+``RISK_TIERS`` includes ``"normal"`` as of migration 0002 (System
+Integration Layer) - the original three-value tuple predated the
+Tiering (Hysteresis) Engine's frozen ``TIER_ORDER``
+(``src/domain/orchestrator/tiering.py``), which legitimately produces
+``"normal"`` as the default state of any calm zone. Since this table
+is a Timescale hypertable meant to hold one row per zone per tick
+continuously, excluding the common case would have failed the
+majority of writes. The additive migration widening the CHECK
+constraint is 0002, not a change to 0001.
 """
 
 import uuid
@@ -24,7 +34,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from src.infra.db.models.base import Base
 
-RISK_TIERS = ("watch", "elevated", "critical")
+RISK_TIERS = ("normal", "watch", "elevated", "critical")
 
 
 class RiskAssessment(Base):

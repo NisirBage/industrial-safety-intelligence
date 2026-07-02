@@ -101,3 +101,53 @@ domains with different underlying math (a physical saturating curve,
 a common-cause-grouped count, a tier-weighted headcount, a categorical
 state machine) without needing a different explainability mechanism
 for any of them.
+
+## Integration invariants
+
+Added by the System Integration Layer, governing how the services
+layer (`src/services/context_builders.py`, `src/services/risk_pipeline.py`)
+is allowed to touch the frozen deterministic engine above. Mandatory,
+not aspirational — the same standing every invariant above already
+has.
+
+- **Context Builders never compute domain logic.** A context builder
+  queries repositories and reshapes rows into the domain-scoped types
+  an agent already expects (`GasReading`, `EquipmentRecord`,
+  `WorkerPresence`, `PermitRecord`, `AdjacentZoneStatus`) or packages
+  already-reshaped values into an agent's `context` dict. No
+  saturating curve, threshold comparison, or confidence calculation
+  lives in `context_builders.py`.
+- **Repositories never compute domain logic.** Every repository method
+  is a query or a write, nothing else — the same rule this document
+  already states for `PermitRepository.update_status()`, now extended
+  explicitly to the five methods the System Integration Layer added
+  (`SensorReadingRepository.recent`, `EquipmentRepository.list_by_zone`,
+  `WorkerRepository.list_by_current_zone`,
+  `PermitRepository.list_open_by_zone`,
+  `RiskAssessmentRepository.latest_by_zone`).
+- **Scheduler never queries repositories.** `scheduler.py` remains
+  exactly as frozen: it invokes whatever `ContextBuilder` it is given
+  and never imports `src.infra`.
+- **Fusion never executes agents.** `risk_formula.py` consumes a
+  `Mapping[str, AgentResult]` the scheduler already produced; it never
+  calls `agent.evaluate()` itself.
+- **Tiering never recomputes risk.** `tiering.py` consumes
+  `FusionResult.compound_risk_score` only.
+- **Justification never recomputes anything.** `justification.py`
+  reshapes and aggregates already-computed `AgentResult`s and a
+  `FusionResult`; it performs no risk, confidence, or tier
+  computation of its own.
+- **Counterfactual never depends on compound risk.** `counterfactual.py`
+  reads only raw sensor data, the same independence a permanent
+  structural test (`tests/unit/test_counterfactual_independence.py`)
+  already enforces at the import level — extended operationally by
+  `risk_pipeline.py` running it in its own session, after the compound
+  engine's transaction has already committed, so neither can affect
+  the other's outcome.
+- **Risk Pipeline only orchestrates.** `risk_pipeline.py` calls the
+  frozen engine's own functions (`run_tick`, `fuse`, `transition`,
+  `build_risk_assessment_justification`, `evaluate`) in sequence and
+  handles the transaction boundary; it contains no risk, tier, or
+  justification computation of its own — verifiable by inspection,
+  the same way every other frozen module's zero-I/O claim is verified
+  by inspection rather than a runtime check.

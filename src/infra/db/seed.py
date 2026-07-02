@@ -14,12 +14,21 @@ Id resolution moved to ``src/domain/simulation/ids.py`` in M2, so
 scenario files can resolve the exact same zone/sensor/worker ids this
 script inserts - see that module's docstring. This import is the only
 change M2 made to this file; nothing else here changed behavior.
+
+System Integration Layer addition: seeded permits now get a real
+baseline snapshot (``_seed_baseline_snapshot``) instead of ``{}`` - no
+sensor readings exist yet at seed time (seeding happens before any
+simulation runs), so this calls Gas Risk Agent's own frozen
+``calculate_risk``/``calculate_confidence`` with an empty reading
+list, the same "no data" path the real agent takes for identical
+input, rather than hand-duplicating what that path returns.
 """
 
 import json
 from datetime import date, datetime
 from pathlib import Path
 
+from src.domain.agents.gas_risk import GasRiskConfig, calculate_confidence, calculate_risk
 from src.domain.simulation.ids import resolve_id as _id
 from src.infra.db.models.equipment import Equipment
 from src.infra.db.models.incident import Incident
@@ -40,6 +49,21 @@ from src.infra.db.repositories import (
 from src.infra.db.session import get_session
 
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "demo_plant.json"
+
+
+def _seed_baseline_snapshot(issued_at: datetime, config: GasRiskConfig) -> dict[str, object]:
+    """``alarm_threshold`` is passed as an unused placeholder:
+    ``calculate_risk``'s own empty-readings branch returns
+    ``elevated_floor`` directly and never reads it."""
+    return {
+        "schema_version": 1,
+        "algorithm_version": config.formula_version,
+        "gas_risk_at_issuance": calculate_risk(
+            [], 1.0, config.default_elevated_floor, issued_at, config
+        ),
+        "confidence_at_issuance": calculate_confidence([], None, issued_at, config),
+        "captured_at": issued_at.isoformat(),
+    }
 
 
 def seed() -> None:
@@ -97,18 +121,18 @@ def seed() -> None:
             )
 
         permits = PermitRepository(session)
+        gas_risk_config = GasRiskConfig()
         for p in data["permits"]:
+            issued_at = datetime.fromisoformat(p["issued_at"])
             permits.create(
                 Permit(
                     permit_id=_id(p["id"]),
                     permit_type=p["permit_type"],
                     zone_id=_id(p["zone"]),
-                    issued_at=datetime.fromisoformat(p["issued_at"]),
+                    issued_at=issued_at,
                     expires_at=datetime.fromisoformat(p["expires_at"]),
                     authorizing_officer_id=_id(p["authorizing_officer"]),
-                    # No risk engine exists yet to snapshot from (M5);
-                    # a real snapshot lands when the orchestrator does.
-                    baseline_snapshot={},
+                    baseline_snapshot=_seed_baseline_snapshot(issued_at, gas_risk_config),
                 )
             )
 
