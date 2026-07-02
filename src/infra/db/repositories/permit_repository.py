@@ -1,9 +1,13 @@
 """Permit repository.
 
-M1 provides only the minimal lookup/create surface. The Master Plan
-explicitly has M4 extend this module for baseline-snapshot comparison
-logic once the Permit Intelligence Agent exists - that logic is not
-pre-built here.
+M1 provided only the minimal lookup/create surface. M4B adds
+``update_status`` - the Master Plan's own M4 task 3 assigns this
+module the job of persisting Permit Intelligence's decisions "with
+baseline_snapshot JSONB written at issuance and never mutated
+afterward, only compared against." ``update_status`` mutates the
+fetched ORM instance's ``status`` attribute directly rather than
+merging a reconstructed object, specifically so no other column -
+especially ``baseline_snapshot`` - can ever be touched by this call.
 """
 
 import uuid
@@ -24,3 +28,13 @@ class PermitRepository:
         merged = self._session.merge(permit)
         self._session.flush()
         return merged
+
+    def update_status(self, permit_id: uuid.UUID, new_status: str) -> Permit:
+        """Updates only ``status``. Raises if the permit doesn't exist -
+        that's a caller bug, not a degraded-data case."""
+        permit = self._session.get(Permit, permit_id)
+        if permit is None:
+            raise ValueError(f"no permit found for id {permit_id!r}")
+        permit.status = new_status
+        self._session.flush()
+        return permit
