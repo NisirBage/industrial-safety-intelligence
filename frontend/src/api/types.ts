@@ -89,3 +89,169 @@ export interface AuditQuery extends HistoryQuery {
   zone_id?: string;
   event_type?: string;
 }
+
+/** Mirrors src/api/schemas/zones.py::ZoneResponse (Decision Intelligence Layer). */
+export interface Zone {
+  zone_id: string;
+  name: string;
+  plant_section: string;
+  oisd_area_classification: string;
+}
+
+/** Mirrors src/api/schemas/zones.py::ZoneWorkerCountResponse (Presentation Layer). */
+export interface ZoneWorkerCount {
+  zone_id: string;
+  worker_count: number;
+}
+
+/** Mirrors src/api/schemas/scenarios.py::ScenarioSummaryResponse. */
+export interface ScenarioSummary {
+  key: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  zone_ids: string[];
+  seed: number;
+}
+
+/** Mirrors src/api/schemas/counterfactual.py::CounterfactualComparisonResponse. */
+export interface CounterfactualVerdict {
+  alert: boolean;
+  triggered_sensors: string[];
+  highest_ratio: number | null;
+}
+
+export interface CompoundVerdict {
+  compound_risk_score: number;
+  confidence: number;
+  tier: Tier;
+}
+
+export interface CounterfactualComparison {
+  zone_id: string;
+  timestamp: string;
+  counterfactual: CounterfactualVerdict;
+  compound: CompoundVerdict | null;
+}
+
+/** Mirrors src/api/schemas/workers.py::WorkerResponse (Scenario Builder). */
+export interface Worker {
+  worker_id: string;
+  role: string;
+  current_zone_id: string | null;
+}
+
+/** Mirrors src/api/schemas/sensors.py::SensorResponse (Scenario Builder). */
+export interface SensorInfo {
+  sensor_id: string;
+  zone_id: string;
+  gas_type: string;
+  alarm_threshold: number;
+  last_calibrated_at: string | null;
+}
+
+/** Mirrors src/api/schemas/equipment.py::EquipmentResponse (Scenario Builder,
+ * read-only - equipment has no scenario-event concept). */
+export interface EquipmentInfo {
+  equipment_id: string;
+  zone_id: string;
+  equipment_type: string;
+  isolation_status: string;
+  maintenance_flag: boolean;
+  loto_confirmed: boolean;
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::ScenarioBuilderOptionsResponse. */
+export interface CurveInfo {
+  name: string;
+  required_params: string[];
+}
+
+export interface ScenarioBuilderOptions {
+  curves: CurveInfo[];
+  permit_types: string[];
+  gas_types: string[];
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::SensorEventInput. */
+export interface SensorEventDraft {
+  name: string;
+  zone_id: string;
+  gas_type: string;
+  sim_time: number;
+  duration_minutes: number;
+  sample_interval_minutes: number;
+  curve: string;
+  params: Record<string, number>;
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::PermitEventInput. */
+export interface PermitEventDraft {
+  name: string;
+  zone_id: string;
+  sim_time: number;
+  permit_type: string;
+  authorizing_officer_id: string;
+  duration_minutes: number;
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::ScenarioDefinitionInput. */
+export interface ScenarioDefinitionDraft {
+  title: string;
+  description: string;
+  seed: number;
+  start_time: string;
+  sensor_events: SensorEventDraft[];
+  permit_events: PermitEventDraft[];
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::ScenarioValidationResponse. */
+export interface ScenarioValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::ZoneScenarioResultResponse. */
+export interface ZoneScenarioResult {
+  zone_id: string;
+  tick_count: number;
+  final_tier: Tier;
+  final_score: number;
+  assessment_ids: string[];
+}
+
+/** Mirrors src/api/schemas/scenario_builder.py::ScenarioExecutionResponse. */
+export interface ScenarioExecutionResult {
+  valid: boolean;
+  errors: string[];
+  start_time: string | null;
+  end_time: string | null;
+  zone_results: ZoneScenarioResult[];
+}
+
+/** Mirrors src/api/schemas/replay.py::ReplayBookmarkResponse (Time Machine). */
+export interface ReplayBookmark {
+  timestamp: string;
+  zone_id: string;
+  kind: "tier_change" | "critical" | "interaction_bonus" | "permit_activated" | "highest_risk";
+  label: string;
+  assessment_id: string | null;
+}
+
+/** Mirrors src/api/schemas/replay.py::ZoneReplayTimelineResponse. */
+export interface ZoneReplayTimeline {
+  zone_id: string;
+  assessments: RiskAssessment[];
+}
+
+/** Mirrors src/api/schemas/replay.py::ReplayResponse. */
+export interface ReplayData {
+  zone_ids: string[];
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  tick_count: number;
+  zone_timelines: ZoneReplayTimeline[];
+  bookmarks: ReplayBookmark[];
+}

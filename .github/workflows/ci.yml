@@ -2,7 +2,19 @@
 # regressions. This is M0's "CI pipeline that runs lint + a trivial
 # test on every push" deliverable. The postgres service was added in
 # M1, whose own testing requirement is integration tests against a
-# real database, not a mock.
+# real database, not a mock. M10 adds a second, independent job for
+# the M8 frontend (lint, unit tests, production build) - kept separate
+# from the backend job so a frontend failure's log isn't interleaved
+# with the backend's, and so the two can run in parallel.
+#
+# Node is pinned to 20 (an LTS actively supported by msw 2.x) rather
+# than left floating: M9/M10 verification found that a newer local
+# Node (v24) makes msw fail to intercept `fetch()` entirely, a
+# test-tooling/Node-version compatibility gap unrelated to application
+# code - see docs/frontend/README.md's "Known limitations". Pinning
+# here is what makes `npm test` actually mean something in CI instead
+# of failing for a reason that has nothing to do with the PR being
+# checked.
 
 name: CI
 
@@ -11,7 +23,7 @@ on:
   pull_request:
 
 jobs:
-  lint-and-test:
+  backend:
     runs-on: ubuntu-latest
     services:
       db:
@@ -50,3 +62,29 @@ jobs:
 
       - name: Pytest
         run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Test
+        run: npm test

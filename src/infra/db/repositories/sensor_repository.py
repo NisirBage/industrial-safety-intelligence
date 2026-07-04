@@ -29,6 +29,15 @@ class SensorRepository:
         stmt = select(Sensor).where(Sensor.zone_id == zone_id, Sensor.gas_type == gas_type)
         return self._session.scalars(stmt).first()
 
+    def list_by_zone(self, zone_id: uuid.UUID) -> list[Sensor]:
+        """Every sensor monitoring a zone - the Decision Intelligence
+        Layer's counterfactual endpoint needs this to discover which
+        gas type(s) a zone monitors without the caller having to
+        already know (unlike ``get_by_zone_and_gas``, which requires
+        the gas type up front)."""
+        stmt = select(Sensor).where(Sensor.zone_id == zone_id)
+        return list(self._session.scalars(stmt).all())
+
     def create(self, sensor: Sensor) -> Sensor:
         merged = self._session.merge(sensor)
         self._session.flush()

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Generic, TypeVar
 
 from fastapi import Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 DEFAULT_LIMIT = 100
 MAX_LIMIT = 1000
@@ -25,9 +25,15 @@ class PaginationParams(BaseModel):
 
 
 def pagination_params(
-    limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
-    before: datetime | None = Query(None),
-    after: datetime | None = Query(None),
+    limit: int = Query(
+        DEFAULT_LIMIT, ge=1, le=MAX_LIMIT, description=f"Max rows to return (1-{MAX_LIMIT})."
+    ),
+    before: datetime | None = Query(
+        None, description="Return only rows strictly older than this timestamp (exclusive cursor)."
+    ),
+    after: datetime | None = Query(
+        None, description="Return only rows strictly newer than this timestamp (exclusive cursor)."
+    ),
 ) -> PaginationParams:
     return PaginationParams(limit=limit, before=before, after=after)
 
@@ -39,6 +45,6 @@ class PaginatedResponse(BaseModel, Generic[T]):
     row count, which would be a separate, more expensive query this
     project's own "boring API surface" guidance doesn't ask for."""
 
-    items: list[T]
-    limit: int
-    count: int
+    items: list[T] = Field(description="Rows for this page, newest-first.")
+    limit: int = Field(description="The limit that was actually applied to this request.")
+    count: int = Field(description="len(items) - equal to limit suggests more pages exist.")

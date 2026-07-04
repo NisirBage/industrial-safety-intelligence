@@ -1,0 +1,73 @@
+# Production stack for the Industrial Safety Intelligence Platform (M10).
+#
+# Differs from deploy/docker-compose.yml (local dev) in scope, not in
+# any application code: only what real code actually exercises today
+# is included (db, backend, nginx+frontend) - Redis and Chroma stay in
+# the dev compose file only, since M7/M11 (their first real consumers)
+# haven't been built yet and shipping unused containers in a
+# "production" stack would be exactly the dead-scaffolding this
+# project's own rules forbid. Add them here when a milestone actually
+# needs them, not before.
+#
+# `docker compose -f deploy/docker-compose.prod.yml up` brings up
+# Postgres, the FastAPI backend, and nginx (serving the built frontend
+# and reverse-proxying /api/ to the backend) - three containers, one
+# public port (80).
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-isip}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-isip}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-[]}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: ""
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  pgdata_prod:

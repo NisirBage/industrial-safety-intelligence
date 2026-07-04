@@ -12,7 +12,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from src.api.common.errors import APIError
+from src.api.common.errors import APIError, ErrorResponse
 from src.api.common.pagination import PaginatedResponse, PaginationParams, pagination_params
 from src.api.dependencies import get_db_session
 from src.api.schemas.permits import PermitResponse
@@ -26,9 +26,13 @@ router = APIRouter(prefix="/permits", tags=["permits"])
     "",
     response_model=PaginatedResponse[PermitResponse],
     summary="List permits, optionally filtered by zone and/or status",
+    description="With no filters, returns every permit across every zone. status must be one "
+    "of the enum values or the request fails with 400 INVALID_STATUS - it is never silently "
+    "ignored.",
+    responses={400: {"model": ErrorResponse, "description": "status is not a recognized value."}},
 )
 def list_permits(
-    zone_id: uuid.UUID | None = Query(None),
+    zone_id: uuid.UUID | None = Query(None, description="Restrict to permits in this zone."),
     status: str | None = Query(None, description=f"One of: {', '.join(PERMIT_STATUSES)}"),
     pagination: PaginationParams = Depends(pagination_params),
     session: Session = Depends(get_db_session),

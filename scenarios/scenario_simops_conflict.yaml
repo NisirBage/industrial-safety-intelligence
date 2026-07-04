@@ -1,0 +1,42 @@
+# Decision Intelligence Layer scenario #2: a slow, gradual CH4 rise in
+# the Tank Farm, with a hot_work permit issued partway through the
+# rise - the SIMOPS/interaction-bonus case Fusion's frozen
+# `interaction_bonus_applied` field exists for, and (per M9's own live
+# verification) a case where the compound engine's fused score can
+# climb well past what any single sensor threshold alone would
+# indicate, while Counterfactual's independent naive baseline stays
+# silent - the exact divergence the Decision Intelligence Layer's
+# Counterfactual comparison page is meant to make visible. Reuses the
+# M1 demo plant's already-seeded tank-farm sensor (10 ppm CH4
+# threshold) and safety officer worker - no new zones, sensors, or
+# workers.
+title: "Tank Farm SIMOPS Conflict"
+description: >
+  CH4 rises gradually in the Tank Farm while a hot work permit is
+  issued partway through - Permit Intelligence and Fusion's
+  interaction bonus compound the two signals well beyond what either
+  one alone would suggest, a divergence the naive single-sensor
+  baseline never sees.
+
+seed: 102
+start_time: "2026-07-10T09:00:00+00:00"
+
+sensor_events:
+  - name: tank_farm_ch4_rise
+    zone: zone-tank-farm
+    gas_type: CH4
+    sim_time: 0
+    duration_minutes: 60
+    sample_interval_minutes: 5
+    curve: linear_ramp
+    params:
+      start_value: 2
+      slope: 0.35
+
+permit_events:
+  - name: hotwork_during_rise
+    zone: zone-tank-farm
+    sim_time: 10
+    permit_type: hot_work
+    authorizing_officer: worker-so-1
+    duration_minutes: 480

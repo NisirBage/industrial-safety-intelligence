@@ -12,7 +12,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from src.api.common.errors import APIError
+from src.api.common.errors import APIError, ErrorResponse
 from src.api.common.pagination import PaginatedResponse, PaginationParams, pagination_params
 from src.api.dependencies import get_db_session
 from src.api.schemas.audit import AuditLogResponse
@@ -26,9 +26,15 @@ router = APIRouter(prefix="/audit", tags=["audit"])
     "",
     response_model=PaginatedResponse[AuditLogResponse],
     summary="List audit log entries, optionally filtered by zone and/or event type",
+    description="Currently always returns an empty page: the hash-chained audit-log writer "
+    "is deferred (see src/infra/db/repositories/audit_log_repository.py), so this endpoint's "
+    "read path is real but nothing has written to it yet.",
+    responses={
+        400: {"model": ErrorResponse, "description": "event_type is not a recognized value."}
+    },
 )
 def list_audit_entries(
-    zone_id: uuid.UUID | None = Query(None),
+    zone_id: uuid.UUID | None = Query(None, description="Restrict to events in this zone."),
     event_type: str | None = Query(None, description=f"One of: {', '.join(AUDIT_EVENT_TYPES)}"),
     pagination: PaginationParams = Depends(pagination_params),
     session: Session = Depends(get_db_session),

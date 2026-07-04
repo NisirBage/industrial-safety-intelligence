@@ -1,0 +1,39 @@
+# Decision Intelligence Layer scenario #1: a sudden, sustained CO leak
+# in the Compressor House, deliberately severe enough (~3x the sensor's
+# own alarm threshold, held steady rather than a single spike) to walk
+# the full WATCH -> ELEVATED -> CRITICAL ladder and past
+# Tiering's dwell_ticks=2 gate - demonstrating both the hysteresis
+# engine's escalation behaviour and a case where the naive
+# single-sensor Counterfactual baseline would agree with the compound
+# engine (unlike scenario_simops_conflict.yaml, where they diverge).
+# Reuses the M1 demo plant's already-seeded compressor-house sensor
+# (35 ppm CO threshold) - no new zones or sensors, only a new incident
+# on the ones that already exist.
+#
+# title/description below are read only by
+# src/services/scenario_catalog.py for the frontend's scenario
+# library - the frozen loader (src/domain/simulation/scenario.py)
+# reads named keys explicitly and ignores anything else, so this adds
+# no risk of drifting from what it validates.
+title: "Critical Compressor House Gas Leak"
+description: >
+  A sudden CO leak in the Compressor House climbs to roughly 3x the
+  sensor's alarm threshold and holds there, escalating the compound
+  engine through WATCH, ELEVATED, and CRITICAL as the hysteresis
+  engine's dwell requirement is satisfied on consecutive ticks.
+
+seed: 101
+start_time: "2026-07-05T09:00:00+00:00"
+
+sensor_events:
+  - name: compressor_co_leak
+    zone: zone-compressor-house
+    gas_type: CO
+    sim_time: 0
+    duration_minutes: 40
+    sample_interval_minutes: 5
+    curve: step
+    params:
+      baseline: 5
+      step_value: 110
+      step_time: 5

@@ -33,7 +33,35 @@ class RiskAssessmentRepository:
         self._session = session
 
     def get(self, assessment_id: uuid.UUID) -> RiskAssessment | None:
-        return self._session.get(RiskAssessment, assessment_id)
+        """Look up by ``assessment_id`` alone. Not ``session.get()``:
+        the primary key is composite (``assessment_id``, ``timestamp``,
+        see this table's own docstring), so passing a single value
+        there raises ``InvalidRequestError`` unconditionally - this
+        method never actually worked and had no caller anywhere in
+        this codebase (verified: `RiskAssessmentRepository(.get(` had
+        zero matches before the Decision Intelligence Layer's
+        assessment-lookup endpoint became its first real caller).
+        Safe because ``assessment_id`` is unique by construction of
+        the sole production writer (`risk_pipeline.py`'s
+        `_derive_assessment_id`, a deterministic hash of exactly
+        `(zone_id, timestamp)`), not because the schema enforces it -
+        no separate UNIQUE constraint exists on this column alone.
+        """
+        stmt = select(RiskAssessment).where(RiskAssessment.assessment_id == assessment_id)
+        return self._session.scalars(stmt).first()
+
+    def get_by_zone_and_timestamp(
+        self, zone_id: uuid.UUID, timestamp: datetime
+    ) -> RiskAssessment | None:
+        """Exact-match lookup - the Decision Intelligence Layer's
+        counterfactual-comparison endpoint uses this to find the
+        compound-engine verdict for the same (zone, tick) a caller
+        asked the naive baseline about, so the two can be shown
+        side by side."""
+        stmt = select(RiskAssessment).where(
+            RiskAssessment.zone_id == zone_id, RiskAssessment.timestamp == timestamp
+        )
+        return self._session.scalars(stmt).first()
 
     def latest_by_zone(self, zone_id: uuid.UUID) -> RiskAssessment | None:
         stmt = (

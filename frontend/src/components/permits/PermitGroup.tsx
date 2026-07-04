@@ -1,4 +1,4 @@
-import type { PermitStatus } from "../../api/types";
+import type { PermitStatus, Zone } from "../../api/types";
 import { usePermits } from "../../hooks/usePermits";
 import { QueryResult } from "../common/QueryResult";
 import { PermitCard } from "./PermitCard";
@@ -7,10 +7,12 @@ export function PermitGroup({
   title,
   status,
   zoneId,
+  zones,
 }: {
   title: string;
   status: PermitStatus;
   zoneId: string | undefined;
+  zones?: Zone[];
 }) {
   const { data, isLoading, error } = usePermits({ status, zone_id: zoneId });
   const items = data?.items ?? [];
@@ -28,7 +30,7 @@ export function PermitGroup({
       >
         <div className="card-grid">
           {items.map((permit) => (
-            <PermitCard key={permit.permit_id} permit={permit} />
+            <PermitCard key={permit.permit_id} permit={permit} zones={zones} />
           ))}
         </div>
       </QueryResult>

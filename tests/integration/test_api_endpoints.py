@@ -101,3 +101,102 @@ def test_audit_endpoint_returns_empty_list() -> None:
     body = response.json()
     assert body["items"] == []
     assert body["count"] == 0
+
+
+def test_zones_endpoint_lists_seeded_zones_with_real_names() -> None:
+    response = client.get("/api/v1/zones")
+
+    assert response.status_code == 200
+    names = {row["name"] for row in response.json()}
+    assert "Compressor House" in names
+    assert "Tank Farm" in names
+
+
+async def test_risk_assessment_endpoint_returns_a_persisted_row_by_id() -> None:
+    result = await run_zone_tick(
+        ZONE_COMPRESSOR_HOUSE, "CO", NOW, 1, AgentCache(), TierState.initial()
+    )
+
+    response = client.get(f"/api/v1/risk/assessment/{result.assessment.assessment_id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["assessment_id"] == str(result.assessment.assessment_id)
+    assert body["tier"] == "normal"
+
+
+def test_zone_worker_count_endpoint_reflects_seeded_workers() -> None:
+    # demo_plant.json only assigns workers' current_zone to Compressor
+    # House and Control Room - Tank Farm has none, so it's the wrong
+    # zone to assert a non-zero count against.
+    response = client.get(f"/api/v1/zones/{ZONE_COMPRESSOR_HOUSE}/workers/count")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["zone_id"] == str(ZONE_COMPRESSOR_HOUSE)
+    assert body["worker_count"] >= 1
+
+
+def test_zone_worker_count_endpoint_returns_zero_for_unknown_zone() -> None:
+    response = client.get(f"/api/v1/zones/{uuid.uuid4()}/workers/count")
+
+    assert response.status_code == 200
+    assert response.json()["worker_count"] == 0
+
+
+def test_risk_assessment_endpoint_404s_for_unknown_id() -> None:
+    response = client.get(f"/api/v1/risk/assessment/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "ASSESSMENT_NOT_FOUND"
+
+
+async def test_counterfactual_endpoint_matches_the_frozen_functions_own_verdict() -> None:
+    """Not a duplicate computation to compare against - this asserts
+    the endpoint's result equals what calling the exact same frozen
+    functions directly (as risk_pipeline.py itself does) produces,
+    proving the endpoint delegates rather than reimplements."""
+    tick = await run_zone_tick(
+        ZONE_COMPRESSOR_HOUSE, "CO", NOW, 1, AgentCache(), TierState.initial()
+    )
+
+    response = client.get(
+        f"/api/v1/counterfactual/{ZONE_COMPRESSOR_HOUSE}",
+        params={"timestamp": NOW.isoformat()},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["counterfactual"]["alert"] == tick.counterfactual.alert
+    assert body["counterfactual"]["triggered_sensors"] == tick.counterfactual.triggered_sensors
+    assert body["compound"]["tier"] == tick.assessment.tier
+
+
+def test_counterfactual_endpoint_handles_a_zone_with_no_sensor_data() -> None:
+    """An unknown/unmonitored zone behaves like every other zone-scoped
+    read in this API: no data found, no error - Counterfactual's own
+    frozen 'missing data produces no alert' behaviour, not a new
+    failure mode."""
+    response = client.get(
+        f"/api/v1/counterfactual/{uuid.uuid4()}", params={"timestamp": NOW.isoformat()}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["counterfactual"]["alert"] is False
+    assert body["compound"] is None
+
+
+def test_scenarios_endpoint_lists_the_authored_demo_scenario() -> None:
+    response = client.get("/api/v1/scenarios")
+
+    assert response.status_code == 200
+    keys = {row["key"] for row in response.json()}
+    assert "demo_vizag_clairton" in keys
+
+
+def test_scenario_detail_endpoint_404s_for_unknown_key() -> None:
+    response = client.get("/api/v1/scenarios/not-a-real-scenario")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "SCENARIO_NOT_FOUND"

@@ -72,6 +72,36 @@ async function parseErrorEnvelope(response: Response): Promise<ErrorEnvelope | n
   }
 }
 
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const envelope = await parseErrorEnvelope(response);
+    if (envelope) {
+      throw new ApiError(
+        envelope.error.message,
+        envelope.error.code,
+        response.status,
+        envelope.error.details ?? null,
+      );
+    }
+    throw new ApiError(
+      `Backend returned ${response.status} with a malformed response body.`,
+      "MALFORMED_RESPONSE",
+      response.status,
+    );
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch (cause) {
+    throw new ApiError(
+      "Backend response was not valid JSON.",
+      "MALFORMED_RESPONSE",
+      response.status,
+      { cause: String(cause) },
+    );
+  }
+}
+
 /**
  * GETs one JSON resource. Every caller (risk.ts/permits.ts/audit.ts)
  * goes through this - it is the only function in the entire frontend
@@ -102,31 +132,42 @@ export async function apiGet<T>(
     clearTimeout(timeout);
   }
 
-  if (!response.ok) {
-    const envelope = await parseErrorEnvelope(response);
-    if (envelope) {
-      throw new ApiError(
-        envelope.error.message,
-        envelope.error.code,
-        response.status,
-        envelope.error.details ?? null,
-      );
+  return handleResponse<T>(response);
+}
+
+/**
+ * POSTs a JSON body and returns the JSON response - the Scenario
+ * Builder's `/validate`/`/execute` calls are this frontend's first
+ * ever write requests, so this is the first `apiPost` this client has
+ * needed. Same timeout/error-envelope discipline as `apiGet`, just a
+ * body and method added.
+ */
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const url = `${BASE_URL}${path}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (cause) {
+    if (controller.signal.aborted) {
+      throw new ApiError("Request timed out.", "TIMEOUT", null);
     }
     throw new ApiError(
-      `Backend returned ${response.status} with a malformed response body.`,
-      "MALFORMED_RESPONSE",
-      response.status,
-    );
-  }
-
-  try {
-    return (await response.json()) as T;
-  } catch (cause) {
-    throw new ApiError(
-      "Backend response was not valid JSON.",
-      "MALFORMED_RESPONSE",
-      response.status,
+      "Could not reach the backend.",
+      "NETWORK_ERROR",
+      null,
       { cause: String(cause) },
     );
+  } finally {
+    clearTimeout(timeout);
   }
+
+  return handleResponse<T>(response);
 }

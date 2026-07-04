@@ -18,18 +18,38 @@ from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
 
 class ErrorDetail(BaseModel):
-    code: str
-    message: str
-    details: dict[str, Any] | None = None
+    code: str = Field(description='Machine-readable, e.g. "VALIDATION_ERROR" or "INVALID_STATUS".')
+    message: str = Field(description="Human-readable summary, safe to display directly.")
+    details: dict[str, Any] | None = Field(
+        default=None, description="Extra structured context - shape varies by code."
+    )
 
 
 class ErrorResponse(BaseModel):
+    """The one error envelope every endpoint in this API returns,
+    regardless of what failed - a validation error, an explicit
+    ``APIError``, or an uncaught exception all produce this same
+    shape (see the three exception handlers below)."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "error": {
+                    "code": "INVALID_STATUS",
+                    "message": "status must be one of ('active', 'flagged', "
+                    "'suspend_recommended', 'closed'), got 'bogus'",
+                    "details": None,
+                }
+            }
+        }
+    )
+
     error: ErrorDetail
 
 

@@ -6,12 +6,14 @@ import { RiskHistoryChart } from "../components/zone/RiskHistoryChart";
 import { TrendIndicator } from "../components/zone/TrendIndicator";
 import { useCurrentRisk } from "../hooks/useCurrentRisk";
 import { useRiskHistory } from "../hooks/useRiskHistory";
-import { formatTimestamp, shortZoneLabel } from "../lib/format";
+import { useZones } from "../hooks/useZones";
+import { formatTimestamp, zoneLabel } from "../lib/format";
 
 const HISTORY_LIMIT = 50;
 
 function ZonePicker() {
   const { data, isLoading, error } = useCurrentRisk();
+  const { data: zoneList } = useZones();
   const zones = data ?? [];
 
   return (
@@ -31,7 +33,7 @@ function ZonePicker() {
               className="card"
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              <h3>{shortZoneLabel(zone.zone_id)}</h3>
+              <h3>{zoneLabel(zone.zone_id, zoneList)}</h3>
               <TierBadge tier={zone.tier} />
             </Link>
           ))}
@@ -43,6 +45,7 @@ function ZonePicker() {
 
 function ZoneDetail({ zoneId }: { zoneId: string }) {
   const { data, isLoading, error } = useRiskHistory(zoneId, { limit: HISTORY_LIMIT });
+  const { data: zoneList } = useZones();
   const items = data?.items ?? [];
   const latest = items[0];
   const previous = items[1];
@@ -52,7 +55,7 @@ function ZoneDetail({ zoneId }: { zoneId: string }) {
       <p>
         <Link to="/zones">&larr; All zones</Link>
       </p>
-      <h1>{shortZoneLabel(zoneId)}</h1>
+      <h1>{zoneLabel(zoneId, zoneList)}</h1>
       <QueryResult
         isLoading={isLoading}
         error={error}
@@ -73,6 +76,13 @@ function ZoneDetail({ zoneId }: { zoneId: string }) {
               />
             </p>
             <p>As of {formatTimestamp(latest.timestamp)}</p>
+            <p>
+              <Link to={`/explain/${latest.assessment_id}`}>Explain this assessment &rarr;</Link>
+              {" · "}
+              <Link to={`/counterfactual/${zoneId}?timestamp=${encodeURIComponent(latest.timestamp)}`}>
+                Compare to naive baseline &rarr;
+              </Link>
+            </p>
           </div>
         )}
         <RiskHistoryChart history={items} />

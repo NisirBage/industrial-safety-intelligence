@@ -16,3 +16,9 @@ export function getRiskHistory(
     query,
   );
 }
+
+/** GET /api/v1/risk/assessment/{assessmentId} - Decision Intelligence
+ * Layer addition, for deep-linking the explainability/research views. */
+export function getRiskAssessment(assessmentId: string): Promise<RiskAssessment> {
+  return apiGet<RiskAssessment>(`/api/v1/risk/assessment/${assessmentId}`);
+}

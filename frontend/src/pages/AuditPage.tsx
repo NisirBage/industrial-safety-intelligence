@@ -4,6 +4,7 @@ import type { AuditEventType } from "../api/types";
 import { AuditTimeline } from "../components/audit/AuditTimeline";
 import { QueryResult } from "../components/common/QueryResult";
 import { useAuditLog } from "../hooks/useAuditLog";
+import { useZones } from "../hooks/useZones";
 
 const EVENT_TYPES: AuditEventType[] = [
   "risk_computed",
@@ -25,6 +26,7 @@ export function AuditPage() {
   });
   const items = data?.items ?? [];
   const oldest = items[items.length - 1];
+  const { data: zones } = useZones();
 
   return (
     <section>
@@ -55,7 +57,7 @@ export function AuditPage() {
         isEmpty={items.length === 0}
         emptyLabel="No audit log entries yet - the hash-chained writer is deferred; see docs/frontend/known-limitations.md."
       >
-        <AuditTimeline entries={items} />
+        <AuditTimeline entries={items} zones={zones} />
         <div className="pagination-controls">
           <button
             type="button"

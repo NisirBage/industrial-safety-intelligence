@@ -363,7 +363,10 @@ def make_permit_intelligence_context_builder(
 
 
 def build_counterfactual_readings(
-    zone_id: uuid.UUID, gas_types: Sequence[str], session: Session
+    zone_id: uuid.UUID,
+    gas_types: Sequence[str],
+    session: Session,
+    as_of: datetime | None = None,
 ) -> list[CounterfactualReading]:
     """Assembles Counterfactual's independent input directly - not a
     ``ContextBuilder`` (Counterfactual isn't an ``Agent``). ``gas_types``
@@ -375,6 +378,16 @@ def build_counterfactual_readings(
     A sensor with no reading yet is silently excluded, not fabricated
     - matching Counterfactual's own frozen "missing data produces no
     alert" behaviour, not a new failure mode introduced here.
+
+    ``as_of`` (Decision Intelligence Layer addition): ``None`` (the
+    default, and every call site before this one) keeps the original
+    "latest reading ever" behaviour ``risk_pipeline.py``'s live tick
+    path needs. Passing a historical timestamp instead uses
+    ``SensorReadingRepository.recent(..., limit=1)`` to find the
+    reading as of that moment - what the read-only
+    ``GET /counterfactual/{zone_id}`` endpoint needs to reproduce a
+    *past* tick's naive-baseline verdict without re-running or
+    duplicating anything Counterfactual itself computes.
     """
     sensor_repo = SensorRepository(session)
     reading_repo = SensorReadingRepository(session)
@@ -384,7 +397,11 @@ def build_counterfactual_readings(
         sensor = sensor_repo.get_by_zone_and_gas(zone_id, gas_type)
         if sensor is None:
             continue
-        latest = reading_repo.latest(zone_id, gas_type)
+        if as_of is None:
+            latest = reading_repo.latest(zone_id, gas_type)
+        else:
+            window = reading_repo.recent(zone_id, gas_type, before=as_of, limit=1)
+            latest = window[0] if window else None
         if latest is None:
             continue
         readings.append(

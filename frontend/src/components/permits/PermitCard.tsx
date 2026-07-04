@@ -1,15 +1,15 @@
 import { useState } from "react";
 
-import type { Permit } from "../../api/types";
-import { formatTimestamp, shortZoneLabel } from "../../lib/format";
+import type { Permit, Zone } from "../../api/types";
+import { formatTimestamp, zoneLabel } from "../../lib/format";
 
-export function PermitCard({ permit }: { permit: Permit }) {
+export function PermitCard({ permit, zones }: { permit: Permit; zones?: Zone[] }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="card">
       <h4>{permit.permit_type}</h4>
-      <p>{shortZoneLabel(permit.zone_id)}</p>
+      <p>{zoneLabel(permit.zone_id, zones)}</p>
       <p>Issued {formatTimestamp(permit.issued_at)}</p>
       <p>Expires {formatTimestamp(permit.expires_at)}</p>
       <button type="button" onClick={() => setExpanded((value) => !value)}>

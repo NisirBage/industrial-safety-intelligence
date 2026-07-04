@@ -25,6 +25,14 @@ class WorkerRepository:
         stmt = select(Worker).where(Worker.current_zone_id == zone_id)
         return list(self._session.scalars(stmt).all())
 
+    def list_all(self) -> list[Worker]:
+        """Every worker, regardless of current zone - the Scenario
+        Builder's authorizing-officer picker needs this because a
+        permit's officer isn't necessarily positioned in the zone the
+        permit covers (unlike ``list_by_current_zone``, which is
+        zone-scoped)."""
+        return list(self._session.scalars(select(Worker)).all())
+
     def create(self, worker: Worker) -> Worker:
         merged = self._session.merge(worker)
         self._session.flush()

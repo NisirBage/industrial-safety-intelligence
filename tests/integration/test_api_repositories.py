@@ -68,6 +68,29 @@ def test_latest_for_all_zones_returns_one_row_per_zone() -> None:
     assert by_zone[ZONE_TANK_FARM].tier == "normal"
 
 
+def test_get_returns_a_row_by_assessment_id_alone() -> None:
+    """Regression test for a genuine defect found during the Decision
+    Intelligence Layer audit: ``get()`` used to call
+    ``session.get(RiskAssessment, assessment_id)``, which raises
+    unconditionally against a composite-primary-key model. Never
+    caught before because nothing called this method."""
+    created = _assessment(ZONE_COMPRESSOR_HOUSE, NOW, "watch", 55.0)
+    with get_session() as session:
+        RiskAssessmentRepository(session).create(created)
+
+    with get_session() as session:
+        found = RiskAssessmentRepository(session).get(created.assessment_id)
+
+    assert found is not None
+    assert found.assessment_id == created.assessment_id
+    assert found.tier == "watch"
+
+
+def test_get_returns_none_for_an_unknown_assessment_id() -> None:
+    with get_session() as session:
+        assert RiskAssessmentRepository(session).get(uuid.uuid4()) is None
+
+
 def test_history_by_zone_respects_limit_and_cursors() -> None:
     with get_session() as session:
         repo = RiskAssessmentRepository(session)

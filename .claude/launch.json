@@ -9,8 +9,8 @@
     },
     {
       "name": "backend",
-      "runtimeExecutable": ".venv/Scripts/uvicorn.exe",
-      "runtimeArgs": ["src.api.main:app", "--port", "8000"],
+      "runtimeExecutable": "C:\\Users\\BIT\\industrial-safety-intelligence\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "src.api.main:app", "--port", "8000"],
       "port": 8000
     }
   ]

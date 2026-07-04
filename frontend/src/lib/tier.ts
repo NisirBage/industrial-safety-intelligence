@@ -21,6 +21,11 @@ export function worstTier(tiers: string[]): string | null {
   });
 }
 
+/** Severity rank of a tier string, for sorting - higher is worse. */
+export function tierRank(tier: string): number {
+  return TIER_ORDER.indexOf(tier as (typeof TIER_ORDER)[number]);
+}
+
 export function latestTimestamp(timestamps: string[]): string | null {
   if (timestamps.length === 0) {
     return null;

@@ -1,16 +1,29 @@
 import { NavLink } from "react-router-dom";
 
+import { useDemoMode } from "../../context/DemoModeContext";
 import { usePolling } from "../../context/PollingContext";
+import { usePresentationMode } from "../../context/PresentationModeContext";
 
 const LINKS = [
   { to: "/", label: "Overview", end: true },
+  { to: "/digital-twin", label: "Digital Twin" },
+  { to: "/operations", label: "Operations Center" },
+  { to: "/executive", label: "Executive" },
   { to: "/zones", label: "Zones" },
   { to: "/permits", label: "Permits" },
   { to: "/audit", label: "Audit" },
+  { to: "/scenarios", label: "Scenarios" },
+  { to: "/scenario-builder", label: "Scenario Builder" },
+  { to: "/time-machine", label: "Time Machine" },
+  { to: "/counterfactual", label: "Counterfactual" },
+  { to: "/journal", label: "Journal" },
+  { to: "/comparison", label: "Comparison" },
 ];
 
 export function NavBar() {
   const { intervalMs, setIntervalMs, enabled, setEnabled } = usePolling();
+  const { active, loading, startDemo } = useDemoMode();
+  const { toggle: togglePresentationMode } = usePresentationMode();
 
   return (
     <header className="nav-bar">
@@ -22,6 +35,17 @@ export function NavBar() {
           </NavLink>
         ))}
       </nav>
+      <button type="button" className="start-demo-button" onClick={startDemo} disabled={active || loading}>
+        {loading ? "Preparing…" : "Start Demo"}
+      </button>
+      <button
+        type="button"
+        className="presentation-toggle-button"
+        onClick={togglePresentationMode}
+        title="Presentation mode (P)"
+      >
+        Presentation Mode
+      </button>
       <div className="polling-controls">
         <label>
           <input

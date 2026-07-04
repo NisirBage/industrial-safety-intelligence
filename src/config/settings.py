@@ -23,11 +23,22 @@ class Settings(BaseSettings):
 
     app_name: str = "industrial-safety-intelligence"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/isip"
-    # M8's dashboard dev server origin. Override via env for any other
-    # deployment - never widened to "*" here, since the API is served
-    # over plain HTTP in development and a wildcard origin would allow
-    # any site to read responses from a user's browser.
-    cors_allowed_origins: list[str] = ["http://localhost:5180"]
+    # M8's dashboard dev server origins. Vite's default port is 5173,
+    # falling to 5174 (or higher) when 5173 is already in use, so both
+    # are listed for both localhost/127.0.0.1 forms rather than
+    # assuming a single fixed port; 5180 is this project's own
+    # launch.json dev-server override and is kept alongside them.
+    # Override via env for any other deployment - never widened to "*"
+    # here, since the API is served over plain HTTP in development and
+    # a wildcard origin would allow any site to read responses from a
+    # user's browser.
+    cors_allowed_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://localhost:5180",
+    ]
 
 
 @lru_cache

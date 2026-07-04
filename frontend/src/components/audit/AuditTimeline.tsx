@@ -1,7 +1,13 @@
-import type { AuditLogEntry } from "../../api/types";
-import { formatTimestamp, shortZoneLabel } from "../../lib/format";
+import type { AuditLogEntry, Zone } from "../../api/types";
+import { formatTimestamp, zoneLabel } from "../../lib/format";
 
-export function AuditTimeline({ entries }: { entries: AuditLogEntry[] }) {
+export function AuditTimeline({
+  entries,
+  zones,
+}: {
+  entries: AuditLogEntry[];
+  zones?: Zone[];
+}) {
   return (
     <table>
       <thead>
@@ -18,7 +24,7 @@ export function AuditTimeline({ entries }: { entries: AuditLogEntry[] }) {
             <td>{formatTimestamp(entry.timestamp)}</td>
             <td>{entry.event_type}</td>
             <td>{entry.actor}</td>
-            <td>{entry.zone_id ? shortZoneLabel(entry.zone_id) : "—"}</td>
+            <td>{entry.zone_id ? zoneLabel(entry.zone_id, zones) : "—"}</td>
           </tr>
         ))}
       </tbody>
