@@ -367,20 +367,29 @@ export function ScenarioBuilderPage() {
         {executeMutation.data && (
           <div>
             {executeMutation.data.valid ? (
-              <ul className="card-grid">
-                {executeMutation.data.zone_results.map((result) => (
-                  <li key={result.zone_id} className="card">
-                    <h3>{zoneLabel(result.zone_id, zones)}</h3>
-                    <p>
-                      {result.final_score.toFixed(1)} <TierBadge tier={result.final_tier} />
-                    </p>
-                    <p>{result.tick_count} ticks persisted</p>
-                    <p>
-                      <Link to={`/zones/${result.zone_id}`}>View zone &rarr;</Link>
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <p className="execute-success-banner">
+                  <span className="execute-success-check" aria-hidden="true">
+                    &#10003;
+                  </span>
+                  Scenario executed - {executeMutation.data.zone_results.length} zone(s) persisted through
+                  the unmodified pipeline.
+                </p>
+                <ul className="card-grid">
+                  {executeMutation.data.zone_results.map((result) => (
+                    <li key={result.zone_id} className="card">
+                      <h3>{zoneLabel(result.zone_id, zones)}</h3>
+                      <p>
+                        {result.final_score.toFixed(1)} <TierBadge tier={result.final_tier} />
+                      </p>
+                      <p>{result.tick_count} ticks persisted</p>
+                      <p>
+                        <Link to={`/zones/${result.zone_id}`}>View zone &rarr;</Link>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : (
               <ul className="alert-list">
                 {executeMutation.data.errors.map((err, index) => (

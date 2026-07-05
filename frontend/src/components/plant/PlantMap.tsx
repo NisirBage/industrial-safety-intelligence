@@ -275,6 +275,12 @@ export function PlantMapLegend() {
         </svg>
         Active permit (shape = type)
       </div>
+      <span
+        className="plant-map-legend-roadmap"
+        title="Not implemented - disclosed as a future integration, not a built feature."
+      >
+        Wind overlay (Roadmap)
+      </span>
     </div>
   );
 }
@@ -324,13 +330,34 @@ export function PlantMap({
   zones,
   onZoneClick,
   showLegend = false,
+  selectedZoneId = null,
 }: {
   zones: PlantMapZone[];
   onZoneClick?: (zoneId: string) => void;
   showLegend?: boolean;
+  /** Item 2 (Digital Twin polish) - when set, the whole map smoothly
+   * zooms/pans toward that zone's already-known layout position (the
+   * same fixed `ZONE_LAYOUT` table every zone already renders from -
+   * no new coordinate is invented). `null`/omitted keeps the resting,
+   * whole-plant view. */
+  selectedZoneId?: string | null;
 }) {
   const [hoveredZoneId, setHoveredZoneId] = useState<string | null>(null);
   const hovered = zones.find((z) => z.zoneId === hoveredZoneId);
+
+  const selectedIndex = zones.findIndex((zone) => zone.zoneId === selectedZoneId);
+  const selectedLayout =
+    selectedIndex >= 0 ? layoutFor(zones[selectedIndex].name, selectedIndex) : null;
+  const cameraTransform = selectedLayout
+    ? (() => {
+        const focusX = selectedLayout.x + selectedLayout.width / 2;
+        const focusY = selectedLayout.y + selectedLayout.height / 2;
+        const scale = 1.5;
+        const translateX = 400 - focusX * scale;
+        const translateY = 200 - focusY * scale;
+        return `translate(${translateX}, ${translateY}) scale(${scale})`;
+      })()
+    : "translate(0, 0) scale(1)";
 
   return (
     <div className="plant-map-wrapper">
@@ -346,6 +373,7 @@ export function PlantMap({
             ))}
         </defs>
 
+        <g className="plant-zones-camera" transform={cameraTransform}>
         {zones.map((zone, index) => {
           const layout = layoutFor(zone.name, index);
           const cx = layout.x + layout.width / 2;
@@ -357,7 +385,7 @@ export function PlantMap({
           return (
             <g
               key={zone.zoneId}
-              className="plant-zone"
+              className={`plant-zone${zone.zoneId === selectedZoneId ? " plant-zone-selected" : ""}`}
               tabIndex={0}
               role="button"
               aria-label={`${zone.name}: ${zone.tier}, score ${zone.compoundRiskScore.toFixed(1)}`}
@@ -429,6 +457,7 @@ export function PlantMap({
             </g>
           );
         })}
+        </g>
       </svg>
 
       <div className="plant-hover-panel" aria-live="polite">

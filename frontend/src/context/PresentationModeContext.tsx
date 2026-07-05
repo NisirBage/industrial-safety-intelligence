@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 interface PresentationModeContextValue {
   active: boolean;
+  enter: () => void;
   toggle: () => void;
   exit: () => void;
 }
@@ -87,7 +88,7 @@ export function PresentationModeProvider({ children }: { children: ReactNode }) 
   }, []);
 
   return (
-    <PresentationModeContext.Provider value={{ active, toggle, exit }}>
+    <PresentationModeContext.Provider value={{ active, enter, toggle, exit }}>
       {children}
     </PresentationModeContext.Provider>
   );

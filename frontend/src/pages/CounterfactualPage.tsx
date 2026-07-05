@@ -38,7 +38,6 @@ function ZonePicker() {
               key={zone.zone_id}
               to={`/counterfactual/${zone.zone_id}`}
               className="card"
-              style={{ textDecoration: "none", color: "inherit" }}
             >
               <h3>{zone.name}</h3>
             </Link>

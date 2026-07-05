@@ -63,7 +63,28 @@ export function OverviewPage() {
 
   return (
     <section>
-      <h1>Plant Overview</h1>
+      <div className="hero-banner">
+        <h1 className="hero-title">Industrial Safety Intelligence Platform</h1>
+        <p className="hero-tagline">
+          Deterministic AI &middot; Explainable Decision Engine &middot; Live Digital Twin
+        </p>
+        <div className="hero-launch-cards">
+          <Link to="/digital-twin" className="hero-launch-card">
+            <span className="hero-launch-card-title">Live Digital Twin</span>
+            <span className="hero-launch-card-sub">See every zone, worker, and permit in real time</span>
+          </Link>
+          <Link to="/operations" className="hero-launch-card">
+            <span className="hero-launch-card-title">Operations Center</span>
+            <span className="hero-launch-card-sub">What to do right now, in priority order</span>
+          </Link>
+          <Link to="/story" className="hero-launch-card hero-launch-card-accent">
+            <span className="hero-launch-card-title">Presentation Mode</span>
+            <span className="hero-launch-card-sub">A guided, 90-second tour of the whole platform</span>
+          </Link>
+        </div>
+      </div>
+
+      <h2 className="section-heading">Zone Status</h2>
       <QueryResult
         isLoading={isLoading}
         error={error}
@@ -88,7 +109,6 @@ export function OverviewPage() {
               key={zone.zone_id}
               to={`/zones/${zone.zone_id}`}
               className="card"
-              style={{ textDecoration: "none", color: "inherit" }}
             >
               <h3>{zoneLabel(zone.zone_id, zoneList)}</h3>
               <p>

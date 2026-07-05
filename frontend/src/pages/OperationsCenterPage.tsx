@@ -43,6 +43,18 @@ function stageLabelFor(targetedFactor: string): string {
     .join(" ");
 }
 
+/** Part 4 (Executive Language) - a plain-English business-impact
+ * label over the zone's own already-persisted tier, the same
+ * categorical mapping style `lib/executiveKpis.ts::plantReadiness`
+ * already uses plant-wide - never a dollar figure or a new
+ * computation, just a qualitative reading of a real category. */
+const BUSINESS_IMPACT_BY_TIER: Record<string, string> = {
+  normal: "No impact - normal operations",
+  watch: "Minor - monitor, no operational change needed",
+  elevated: "Moderate - schedule mitigation soon",
+  critical: "Severe - immediate action required",
+};
+
 /**
  * Intelligent Incident Response & Operations Center - "what should
  * the operator do right now?" One page composing the Action Queue,
@@ -200,6 +212,15 @@ export function OperationsCenterPage() {
                 {isReplayMode ? "Replay tick" : "As of"}: {formatTimestamp(displayAssessment.timestamp)}
               </p>
               {displayExplanation && <p className="executive-explanation">{displayExplanation}</p>}
+              <p className="operations-status-line operations-business-impact">
+                <strong>Business impact:</strong>{" "}
+                {BUSINESS_IMPACT_BY_TIER[displayAssessment.tier] ?? "Unknown"}
+              </p>
+              {displayQueue.length > 0 && (
+                <p className="operations-status-line">
+                  <strong>What happens next:</strong> {displayQueue[0].text} (ETA {displayQueue[0].metadata.eta})
+                </p>
+              )}
             </div>
 
             <div className="operations-layout">
@@ -221,22 +242,22 @@ export function OperationsCenterPage() {
                 </div>
 
                 <div className="card">
-                  <h3>Operational Dependency Graph</h3>
+                  <h3>Action Sequence</h3>
                   <OperationalDependencyGraph actions={displayQueue} />
                 </div>
 
                 <div className="card">
-                  <h3>Operational Impact Explorer</h3>
+                  <h3>Why These Actions</h3>
                   <OperationalImpactExplorer actions={displayQueue} justification={displayJustification} />
                 </div>
 
                 <div className="card">
-                  <h3>SOP Integration</h3>
+                  <h3>Standard Procedures</h3>
                   <SopPanel actions={displayQueue} activePermitTypes={displayActivePermitTypes} />
                 </div>
 
                 <div className="card">
-                  <h3>Operator Timeline</h3>
+                  <h3>Incident Timeline</h3>
                   <OperatorTimeline
                     entries={timelineEntries}
                     onJump={isReplayMode ? replay.jumpToTimestamp : undefined}

@@ -31,7 +31,6 @@ function ZonePicker() {
               key={zone.zone_id}
               to={`/zones/${zone.zone_id}`}
               className="card"
-              style={{ textDecoration: "none", color: "inherit" }}
             >
               <h3>{zoneLabel(zone.zone_id, zoneList)}</h3>
               <TierBadge tier={zone.tier} />
@@ -63,7 +62,7 @@ function ZoneDetail({ zoneId }: { zoneId: string }) {
         emptyLabel="No risk assessment history for this zone yet."
       >
         {latest && (
-          <div className="card" style={{ marginBottom: "1rem" }}>
+          <div className="card zone-current-assessment">
             <p>
               Current risk: {latest.compound_risk_score.toFixed(1)} <TierBadge tier={latest.tier} />
             </p>

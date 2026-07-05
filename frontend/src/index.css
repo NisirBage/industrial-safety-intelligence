@@ -1,18 +1,115 @@
+/*
+ * M19 Industrial Design System - the single token layer every
+ * component should read from rather than hardcoding a new magic
+ * number. Full rationale/usage guide in docs/design/design_system.md.
+ * Colors were already tokenized before this milestone; this adds the
+ * spacing/radius/elevation/typography/motion scales that were
+ * previously ad hoc per component, plus a `[data-theme="dark"]`
+ * override block (Part 1's "dark theme" requirement) applied via
+ * `ThemeToggle` (frontend/src/components/common/ThemeToggle.tsx).
+ */
 :root {
+  /* Color - base (light theme, the default) */
   --text: #1f2430;
   --text-muted: #5b6472;
   --bg: #f4f6f8;
   --surface: #ffffff;
+  --surface-raised: #ffffff;
   --border: #dfe3e8;
+  --border-strong: #c3cdd8;
   --tier-normal: #4caf50;
   --tier-watch: #ffc107;
   --tier-elevated: #ff7f0e;
   --tier-critical: #d32f2f;
   --error: #b3261e;
+  --focus-ring: #2f6fed;
+
+  /* Accessibility (Part 9) - WCAG AA text-contrast variants of the
+     tier colors above. `--tier-watch`/`--tier-elevated`/`--tier-normal`
+     are tuned to read well as badge FILLS and icon strokes; used
+     directly as small TEXT on a light surface, watch and elevated
+     both fail 4.5:1 (measured ~1.6:1 and ~2.5:1) and normal falls
+     short too (~2.8:1). These three are the same hues, darkened only
+     enough to pass - use them for `color`, never the base tier
+     tokens, anywhere a tier color paints text rather than a fill. */
+  --tier-watch-text: #3a2e00;
+  --tier-elevated-text: #b35900;
+  --tier-normal-text: #2e7d32;
+
+  /* Spacing scale - 4px base unit, used for padding/gap/margin */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Corner radius scale - matches the dominant pre-existing values
+     (6px was already the most common "button/small container" radius,
+     8px the most common "card" radius) rather than introducing new
+     numbers under a token name. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+
+  /* Elevation scale - three levels: resting, raised/hover, overlay */
+  --shadow-1: 0 1px 2px rgba(31, 36, 48, 0.06);
+  --shadow-2: 0 4px 14px rgba(31, 36, 48, 0.1);
+  --shadow-3: 0 16px 40px rgba(31, 36, 48, 0.22);
+
+  /* Typography scale */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.1rem;
+  --font-size-lg: 1.5rem;
+  --font-size-xl: 2rem;
+
+  /* Motion tokens - every transition/animation duration in this file
+     should reference one of these three rather than a new number. */
+  --duration-fast: 0.15s;
+  --duration-base: 0.25s;
+  --duration-slow: 0.6s;
+  --ease-standard: ease;
+  --ease-emphasized: cubic-bezier(0.2, 0.7, 0.3, 1);
 
   font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
+}
+
+/* Dark theme - same semantic token names, different values. Every
+   component that reads `var(--text)`/`var(--surface)`/etc. (which is
+   already the whole app, colors having been tokenized since M0)
+   switches automatically; nothing below this block needs its own
+   dark-mode override. */
+:root[data-theme="dark"] {
+  --text: #e8ecf1;
+  --text-muted: #9aa5b3;
+  --bg: #14171d;
+  --surface: #1c212b;
+  --surface-raised: #232937;
+  --border: #2c3340;
+  --border-strong: #3a4354;
+  --tier-normal: #5fbf6d;
+  --tier-watch: #ffcf3f;
+  --tier-elevated: #ff9640;
+  --tier-critical: #ef5350;
+  --error: #ff6b60;
+  --focus-ring: #6d9bff;
+
+  /* The dark theme's own tier colors are already bright enough to
+     read as text against this theme's dark surfaces - no separate
+     darkened variant needed, so the "text" tokens just are the tier
+     colors here (opposite problem from light theme, same fix shape:
+     one token, one accessible value per theme). */
+  --tier-watch-text: var(--tier-watch);
+  --tier-elevated-text: var(--tier-elevated);
+  --tier-normal-text: var(--tier-normal);
 }
 
 * {
@@ -21,6 +118,17 @@
 
 body {
   margin: 0;
+  transition: background-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
+}
+
+/* Accessibility (Part 9) - a single, visible, consistent focus ring
+   for every focusable element, keyboard-only (`:focus-visible`, not
+   `:focus`, so a mouse click doesn't show a ring a keyboard user
+   didn't ask to hide). */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .dashboard-layout {
@@ -54,7 +162,7 @@ body {
   color: var(--text-muted);
   text-decoration: none;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .nav-link.active {
@@ -68,7 +176,7 @@ body {
   background: var(--tier-elevated);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 0.4rem 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -94,7 +202,7 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.6);
   color: #fff;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 0.25rem 0.75rem;
   cursor: pointer;
 }
@@ -102,10 +210,28 @@ body {
 .presentation-toggle-button {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 0.4rem 0.9rem;
   cursor: pointer;
   color: var(--text);
+}
+
+.theme-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-toggle-button:hover {
+  border-color: var(--tier-elevated);
+  color: var(--tier-elevated);
 }
 
 .presentation-exit-button {
@@ -116,7 +242,7 @@ body {
   background: rgba(0, 0, 0, 0.65);
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0.5rem 1.1rem;
   font-size: 0.85rem;
   cursor: pointer;
@@ -171,17 +297,79 @@ body {
   margin: 0 auto;
 }
 
+.dashboard-content-transition {
+  animation: page-fade-in var(--duration-base) var(--ease-standard);
+}
+
+/* Success animation (Part 3) - Scenario Builder's "Execute" result. */
+.execute-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.75rem;
+  background: color-mix(in srgb, var(--tier-normal) 12%, transparent);
+  border: 1px solid var(--tier-normal);
+  border-radius: var(--radius-md);
+  color: var(--tier-normal-text);
+  font-weight: 600;
+  animation: success-pop-in var(--duration-base) var(--ease-emphasized);
+}
+
+.execute-success-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--tier-normal);
+  color: #fff;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+@keyframes success-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem;
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: box-shadow var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+a.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 a.card:hover,
 button.card:hover {
-  box-shadow: 0 4px 14px rgba(31, 36, 48, 0.08);
+  box-shadow: var(--shadow-2);
   transform: translateY(-2px);
   border-color: var(--text-muted);
 }
@@ -189,19 +377,48 @@ button.card:hover {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
+}
+
+.zone-current-assessment {
+  margin-bottom: var(--space-4);
+}
+
+.executive-section-card {
+  margin-bottom: var(--space-6);
 }
 
 .nav-link {
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 button {
-  transition: opacity 0.15s ease, transform 0.1s ease, background-color 0.15s ease;
+  transition: opacity var(--duration-fast) var(--ease-standard), transform 0.1s var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+  position: relative;
+  overflow: hidden;
 }
 
 button:not(:disabled):active {
   transform: translateY(1px);
+}
+
+/* CSS-only "ripple" - a brief currentColor flash on press, no JS
+   click-position tracking needed. Subtle by design (12% opacity,
+   0.15s) so it reads as tactile feedback, not decoration. */
+button:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+  pointer-events: none;
+}
+
+button:not(:disabled):active::after {
+  opacity: 0.12;
 }
 
 .visually-hidden {
@@ -225,7 +442,7 @@ button:not(:disabled):active {
 .skeleton-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -234,7 +451,7 @@ button:not(:disabled):active {
 
 .skeleton-line {
   height: 0.85rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
@@ -274,7 +491,23 @@ button:not(:disabled):active {
   .pipeline-stage-active,
   .pipeline-stage-tracing,
   .plant-zone-heat-drift,
-  .dependency-graph-node-tracing {
+  .dependency-graph-node-tracing,
+  .scene,
+  .presentation-mode-progress-fill,
+  .hero-launch-card,
+  .action-card-detail,
+  .permit-card-detail,
+  .plant-zones-camera,
+  .tier-fill-normal,
+  .plant-zone-icon,
+  .plant-map-legend,
+  .plant-zone-heat,
+  .dashboard-content-transition,
+  .zone-inspector-drawer,
+  .operator-timeline-entry,
+  .execute-success-banner,
+  button::after,
+  body {
     transition: none;
     animation: none;
   }
@@ -282,13 +515,14 @@ button:not(:disabled):active {
 
 .tier-badge {
   display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  padding: 0.15rem var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   color: #fff;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
 }
 
 .tier-normal {
@@ -329,7 +563,7 @@ button:not(:disabled):active {
 }
 
 .trend-down {
-  color: var(--tier-normal);
+  color: var(--tier-normal-text);
 }
 
 .trend-flat {
@@ -344,9 +578,25 @@ table {
 th,
 td {
   text-align: left;
-  padding: 0.5rem;
+  padding: var(--space-2);
   border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
+}
+
+thead th {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+tbody tr:hover {
+  background: var(--bg);
 }
 
 .pagination-controls {
@@ -375,7 +625,7 @@ td {
 .rule-tag {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0.2rem 0.65rem;
   font-size: 0.8rem;
   font-family: ui-monospace, Consolas, monospace;
@@ -398,7 +648,7 @@ td {
 
 .recommendation {
   padding: 0.6rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border-left: 4px solid var(--border);
   background: var(--bg);
 }
@@ -426,7 +676,7 @@ td {
 
 .alert-item {
   padding: 0.6rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border-left: 4px solid var(--border);
   background: var(--bg);
 }
@@ -466,7 +716,7 @@ td {
   cursor: pointer;
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--surface);
 }
 
@@ -517,7 +767,7 @@ td {
   gap: 0.15rem;
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--bg);
   cursor: pointer;
   font-size: 0.85rem;
@@ -538,7 +788,7 @@ td {
   padding: 0.6rem;
   border-left: 3px solid var(--border);
   background: var(--bg);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   animation: decision-evolution-fade-in 0.3s ease;
 }
 
@@ -554,7 +804,7 @@ td {
 }
 
 .decision-evolution-bonus {
-  color: var(--tier-elevated);
+  color: var(--tier-elevated-text);
   font-weight: 600;
 }
 
@@ -569,14 +819,14 @@ td {
 .timeline-track {
   position: relative;
   background: var(--bg);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   min-height: 40px;
 }
 
 .timeline-event {
   position: absolute;
   height: 32px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   padding: 0 0.5rem;
@@ -634,8 +884,18 @@ td {
   max-height: 440px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
+}
+
+/* M19 (Digital Twin polish) - smooth camera zoom/pan toward a
+   selected zone. Transforms the whole zones layer, never a single
+   zone's own geometry, so hover/selection glows stay correctly
+   positioned relative to their (still real, still fixed-layout)
+   zone. */
+.plant-zones-camera {
+  transition: transform var(--duration-slow) var(--ease-emphasized);
+  transform-origin: 0 0;
 }
 
 .plant-zone {
@@ -646,6 +906,30 @@ td {
 .plant-zone:hover .plant-zone-fill,
 .plant-zone:focus .plant-zone-fill {
   filter: brightness(1.1);
+}
+
+.plant-zone-selected .plant-zone-fill {
+  filter: drop-shadow(0 0 6px var(--tier-elevated));
+}
+
+/* A very subtle "breathing" scale on normal-tier zones only -
+   distinct from (and much calmer than) the critical pulse, so a
+   healthy zone still reads as "alive" without competing for
+   attention the way an alarm state should. */
+.tier-fill-normal {
+  animation: zone-breathe 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes zone-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
 }
 
 .plant-zone-fill {
@@ -691,7 +975,7 @@ td {
   padding: 0.6rem 0.9rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 }
 
 .plant-hover-panel-hint {
@@ -710,6 +994,7 @@ td {
 
 .plant-zone-heat {
   pointer-events: none;
+  transition: opacity var(--duration-slow) var(--ease-standard);
 }
 
 .plant-zone-critical-pulse {
@@ -734,6 +1019,27 @@ td {
   fill: var(--surface);
   stroke: var(--text);
   stroke-width: 1.2;
+}
+
+/* Every zone icon (worker/permit/equipment/sensor) pops in on mount
+   rather than appearing instantly - a real state change (a permit
+   just went active, a worker just badged in) reads as an event, not
+   a static fact. */
+.plant-zone-icon {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: zone-icon-pop-in var(--duration-base) var(--ease-emphasized);
+}
+
+@keyframes zone-icon-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .plant-zone-icon-badge {
@@ -865,10 +1171,22 @@ td {
   padding: 0.6rem 0.9rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   font-size: 0.8rem;
   color: var(--text-muted);
   align-items: center;
+  animation: legend-fade-in var(--duration-slow) var(--ease-standard);
+}
+
+@keyframes legend-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .plant-map-legend-group {
@@ -884,6 +1202,18 @@ td {
   height: 12px;
   border-radius: 3px;
   margin-right: 0.15rem;
+}
+
+/* Disclosed, disabled roadmap placeholder - same honest pattern as
+   Presentation Mode's "Weather Integration (Roadmap)" chip. Never
+   toggled on, never implies a working wind layer exists. */
+.plant-map-legend-roadmap {
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--text-muted);
+  font-size: var(--font-size-xs);
+  opacity: 0.75;
+  cursor: default;
 }
 
 .digital-twin-layout {
@@ -904,7 +1234,7 @@ td {
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 4px solid var(--tier-watch);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   margin-bottom: 0.75rem;
 }
 
@@ -915,9 +1245,21 @@ td {
   padding: 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   position: sticky;
   top: 1rem;
+  animation: drawer-slide-in var(--duration-base) var(--ease-emphasized);
+}
+
+@keyframes drawer-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .zone-inspector-header {
@@ -966,7 +1308,7 @@ td {
 }
 
 .zone-inspector-flag {
-  color: var(--tier-watch);
+  color: var(--tier-watch-text);
   font-size: 0.8rem;
   margin-left: 0.35rem;
 }
@@ -1052,7 +1394,7 @@ td {
 
 .pipeline-stage {
   padding: 0.4rem 0.7rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   font: inherit;
@@ -1159,7 +1501,7 @@ td {
   background: var(--bg);
   border-left: 4px solid var(--tier-elevated);
   padding: 0.75rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-style: italic;
 }
 
@@ -1174,7 +1516,7 @@ td {
 }
 
 .root-cause-bonus {
-  color: var(--tier-elevated);
+  color: var(--tier-elevated-text);
   font-weight: 600;
 }
 
@@ -1214,7 +1556,7 @@ td {
   flex: 1;
   min-width: 200px;
   padding: 1.25rem;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   text-align: center;
   background: var(--bg);
 }
@@ -1271,6 +1613,33 @@ td {
   margin: 0;
 }
 
+/* M18.5 - the primary row (Safety Status / Operational Readiness /
+   Current Incident) gets visual priority over the supporting-metrics
+   grid below it, per "nothing should compete equally for attention". */
+.kpi-grid-primary {
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  margin-bottom: 0.5rem;
+}
+
+.kpi-card-primary {
+  padding: 1.25rem 1.4rem;
+  border-width: 2px;
+}
+
+.kpi-card-primary h3 {
+  font-size: 0.9rem;
+}
+
+.kpi-card-primary .kpi-value {
+  font-size: 1.9rem;
+}
+
+@media (max-width: 800px) {
+  .kpi-grid-primary {
+    grid-template-columns: 1fr;
+  }
+}
+
 @keyframes pipeline-pulse {
   0%,
   100% {
@@ -1306,6 +1675,10 @@ td {
   margin: 0.25rem 0;
 }
 
+.operations-business-impact {
+  font-weight: 600;
+}
+
 .operations-layout {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1323,7 +1696,7 @@ td {
 .impact-badge {
   display: inline-block;
   padding: 0.1rem 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1342,17 +1715,17 @@ td {
 
 .impact-high {
   background: color-mix(in srgb, var(--tier-elevated) 20%, transparent);
-  color: var(--tier-elevated);
+  color: var(--tier-elevated-text);
 }
 
 .impact-moderate {
   background: color-mix(in srgb, var(--tier-watch) 20%, transparent);
-  color: var(--tier-watch);
+  color: var(--tier-watch-text);
 }
 
 .impact-low {
   background: color-mix(in srgb, var(--tier-normal) 20%, transparent);
-  color: var(--tier-normal);
+  color: var(--tier-normal-text);
 }
 
 .impact-informational {
@@ -1434,6 +1807,22 @@ td {
 .action-card-detail {
   padding: 0 0.9rem 0.9rem;
   border-top: 1px solid var(--border);
+  animation: card-detail-fade-in 0.2s ease;
+}
+
+.permit-card-detail {
+  animation: card-detail-fade-in 0.2s ease;
+}
+
+@keyframes card-detail-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .action-card-detail dl {
@@ -1487,7 +1876,7 @@ td {
 .dependency-graph-node {
   padding: 0.5rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--surface);
   font-size: 0.85rem;
   text-align: center;
@@ -1524,7 +1913,7 @@ td {
 .impact-explorer-item {
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .impact-explorer-level {
@@ -1551,7 +1940,7 @@ td {
 .sop-panel-item {
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .sop-panel-title {
@@ -1583,6 +1972,7 @@ td {
 
 .operator-timeline-entry {
   position: relative;
+  animation: card-detail-fade-in var(--duration-base) var(--ease-standard);
 }
 
 .operator-timeline-entry::before {
@@ -1642,4 +2032,475 @@ td {
 .operations-node-crossref ul {
   margin: 0;
   padding-left: 1.1rem;
+}
+
+/* Presentation Mode - guided hackathon-judging tour */
+
+.presentation-mode-launcher {
+  text-align: center;
+  padding: 2rem;
+}
+
+.presentation-mode-start-button {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+  margin-top: 1rem;
+  background: var(--tier-elevated);
+  color: #1a1a1a;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.presentation-mode-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Shared secondary-button look for the transport controls (Previous /
+   Play-Pause / Next / Restart) - previously unstyled native buttons,
+   inconsistent with every other control on this page. */
+.presentation-mode-controls > button:not(.judge-mode-toggle) {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.presentation-mode-controls > button:not(.judge-mode-toggle):hover:not(:disabled) {
+  border-color: var(--tier-elevated);
+}
+
+.presentation-mode-controls > button:not(.judge-mode-toggle):disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.presentation-mode-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.presentation-mode-progress-fill {
+  height: 100%;
+  background: var(--tier-elevated);
+  transition: width 0.2s linear;
+}
+
+.presentation-mode-progress-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+}
+
+.presentation-mode-stage {
+  min-height: 60vh;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 2rem;
+}
+
+.scene {
+  animation: scene-fade-in 0.6s ease;
+}
+
+@keyframes scene-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scene-title,
+.scene-closing {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.scene-title-heading {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.scene-title-sub {
+  color: var(--text-muted);
+  margin: 0 0 2rem;
+}
+
+.scene-title-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.scene-title-stats > div,
+.scene-closing-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.scene-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.scene-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.animated-counter {
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-heading {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.scene-digital-twin-map {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.scene-incident-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.scene-incident-zone {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.scene-incident-readout {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+}
+
+.scene-influence-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scene-influence-list li {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.scene-influence-top {
+  border-left: 4px solid var(--tier-critical) !important;
+}
+
+.scene-operations-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .scene-operations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scene-counterfactual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.scene-closing-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.scene-closing-capabilities {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 2rem;
+}
+
+.scene-closing-capabilities li {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.scene-closing-tagline {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.presentation-hud {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.8rem;
+  z-index: 1000;
+  font-family: monospace;
+}
+
+.presentation-hud dl {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 0.15rem 0.75rem;
+  margin: 0;
+}
+
+.presentation-hud dt {
+  color: #aaa;
+}
+
+.presentation-hud dd {
+  margin: 0;
+}
+
+/* M18.5 - Judge Experience Optimization: hero landing, section
+   hierarchy tokens, executive card language, Judge Mode, Demo
+   Readiness. */
+
+.hero-banner {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #1f2430 0%, #2d3748 100%);
+  color: #f4f6f8;
+}
+
+.hero-title {
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+}
+
+.hero-tagline {
+  color: #c3cdd8;
+  margin: 0 0 1.75rem;
+  font-size: 1.05rem;
+}
+
+.hero-launch-cards {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-launch-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 240px;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.hero-launch-card:hover,
+.hero-launch-card:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
+
+.hero-launch-card-accent {
+  border-color: var(--tier-elevated);
+}
+
+.hero-launch-card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.hero-launch-card-sub {
+  font-size: 0.82rem;
+  color: #c3cdd8;
+}
+
+/* Consistent secondary-heading token, used below the hero and
+   anywhere a page needs a level below its h1 without inventing a new
+   size each time. */
+.section-heading {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Judge Mode toggle + banner (Presentation Mode) */
+
+.judge-mode-toggle {
+  border: 1px solid var(--tier-elevated);
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.judge-mode-toggle-active {
+  background: var(--tier-elevated);
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.judge-mode-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.roadmap-chip {
+  flex-shrink: 0;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* Guided Talking Points panel - Judge Mode only */
+
+.talking-points-panel {
+  margin-top: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.talking-points-panel h3 {
+  margin: 1rem 0 0.25rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.talking-points-panel h3:first-child {
+  margin-top: 0;
+}
+
+.talking-points-panel p {
+  margin: 0;
+}
+
+/* Demo Readiness panel - Presentation Mode launcher */
+
+.demo-readiness-panel {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.demo-readiness-ready {
+  border-color: var(--tier-normal);
+}
+
+.demo-readiness-not-ready {
+  border-color: var(--tier-critical);
+}
+
+.demo-readiness-summary {
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.demo-readiness-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.demo-readiness-list li {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(160px, auto) 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.demo-readiness-ok .demo-readiness-icon {
+  color: var(--tier-normal-text);
+}
+
+.demo-readiness-fail .demo-readiness-icon {
+  color: var(--tier-critical);
+}
+
+.demo-readiness-label {
+  font-weight: 600;
+}
+
+.demo-readiness-detail {
+  color: var(--text-muted);
+}
+
+@media (max-width: 700px) {
+  .demo-readiness-list li {
+    grid-template-columns: 1.25rem 1fr;
+  }
 }

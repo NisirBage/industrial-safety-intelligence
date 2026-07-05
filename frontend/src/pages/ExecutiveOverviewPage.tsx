@@ -148,21 +148,25 @@ export function ExecutiveOverviewPage() {
         isEmpty={zoneAssessments.length === 0}
         emptyLabel="No risk assessments have been recorded yet."
       >
-        <div className="kpi-grid">
-          <div className="card kpi-card">
-            <h3>Plant Health</h3>
+        {/* Primary row - the three facts an executive needs first:
+            is the plant safe, is it ready to operate, and what's the
+            one thing happening right now. Everything else is
+            supporting detail, visually demoted below. */}
+        <div className="kpi-grid kpi-grid-primary">
+          <div className="card kpi-card kpi-card-primary">
+            <h3>Safety Status</h3>
             <p className="kpi-value">{plantTier ? <TierBadge tier={plantTier} /> : "—"}</p>
             <p className="kpi-sub">Last update: {lastUpdate ? formatTimestamp(lastUpdate) : "—"}</p>
           </div>
 
-          <div className={`card kpi-card plant-readiness-${readiness}`}>
-            <h3>Plant Readiness</h3>
+          <div className={`card kpi-card kpi-card-primary plant-readiness-${readiness}`}>
+            <h3>Operational Readiness</h3>
             <p className="kpi-value">{READINESS_LABEL[readiness]}</p>
             <p className="kpi-sub">{normalPercent.toFixed(0)}% of zones at NORMAL</p>
           </div>
 
-          <div className="card kpi-card">
-            <h3>Highest Risk Zone</h3>
+          <div className="card kpi-card kpi-card-primary">
+            <h3>Current Incident</h3>
             {topZone ? (
               <>
                 <p className="kpi-value">{zoneLabel(topZone.zoneId, zones)}</p>
@@ -177,10 +181,13 @@ export function ExecutiveOverviewPage() {
                 {topZoneSparkline.length > 1 && <MiniSparkline values={topZoneSparkline} />}
               </>
             ) : (
-              <p className="kpi-value">—</p>
+              <p className="kpi-value">No active incident</p>
             )}
           </div>
+        </div>
 
+        <h2 className="section-heading">Supporting Metrics</h2>
+        <div className="kpi-grid">
           <div className="card kpi-card">
             <h3>Active Critical Permits</h3>
             <p className="kpi-value">{activeCriticalPermits}</p>
@@ -202,9 +209,9 @@ export function ExecutiveOverviewPage() {
           </div>
 
           <div className="card kpi-card">
-            <h3>Counterfactual Misses</h3>
+            <h3>Legacy System Blind Spots</h3>
             <p className="kpi-value">{counterfactualMisses}</p>
-            <p className="kpi-sub">Zones where the naive baseline misses the current escalation</p>
+            <p className="kpi-sub">Zones where a naive single-sensor alarm misses the current escalation</p>
           </div>
 
           <div className="card kpi-card">
@@ -214,26 +221,26 @@ export function ExecutiveOverviewPage() {
           </div>
 
           <div className="card kpi-card">
-            <h3>Open Recommendations</h3>
+            <h3>Open Actions</h3>
             <p className="kpi-value">{openRecommendations}</p>
-            <p className="kpi-sub">Across every zone&apos;s current assessment</p>
+            <p className="kpi-sub">Recommended actions across every zone&apos;s current assessment</p>
           </div>
         </div>
 
-        <div className="card" style={{ margin: "1rem 0" }}>
-          <h3>Permits</h3>
+        <h2 className="section-heading">Permits</h2>
+        <div className="card executive-section-card">
           <div className="card-grid">
-            <div className="card">
-              <p>Active</p>
-              <p style={{ fontSize: "1.5rem" }}>{active.data?.count ?? "—"}</p>
+            <div className="card kpi-card">
+              <h3>Active</h3>
+              <p className="kpi-value">{active.data?.count ?? "—"}</p>
             </div>
-            <div className="card">
-              <p>Flagged</p>
-              <p style={{ fontSize: "1.5rem" }}>{flagged.data?.count ?? "—"}</p>
+            <div className="card kpi-card">
+              <h3>Flagged</h3>
+              <p className="kpi-value">{flagged.data?.count ?? "—"}</p>
             </div>
-            <div className="card">
-              <p>Suspend Recommended</p>
-              <p style={{ fontSize: "1.5rem" }}>{suspendRecommended.data?.count ?? "—"}</p>
+            <div className="card kpi-card">
+              <h3>Suspend Recommended</h3>
+              <p className="kpi-value">{suspendRecommended.data?.count ?? "—"}</p>
             </div>
           </div>
           <p>
@@ -241,8 +248,8 @@ export function ExecutiveOverviewPage() {
           </p>
         </div>
 
-        <div className="card" style={{ margin: "1rem 0" }}>
-          <h3>Active Alerts</h3>
+        <h2 className="section-heading">Active Alerts</h2>
+        <div className="card executive-section-card">
           {activeAlerts.length === 0 ? (
             <p>No zone is currently above NORMAL.</p>
           ) : (
@@ -258,8 +265,8 @@ export function ExecutiveOverviewPage() {
           )}
         </div>
 
+        <h2 className="section-heading">Priority Actions</h2>
         <div className="card">
-          <h3>Action Centre</h3>
           {priorityActions.length === 0 ? (
             <p>No recommended actions across the plant right now.</p>
           ) : (

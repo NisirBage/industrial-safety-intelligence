@@ -31,17 +31,33 @@ export function AgentContributionChart({
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="agent" />
-        <YAxis domain={[0, 100]} />
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="agent" tick={{ fontSize: 12, fill: "var(--text-muted)" }} />
+        <YAxis
+          domain={[0, 100]}
+          tick={{ fontSize: 12, fill: "var(--text-muted)" }}
+          label={{
+            value: "Score (0-100)",
+            angle: -90,
+            position: "insideLeft",
+            fontSize: 12,
+            fill: "var(--text-muted)",
+          }}
+        />
         <Tooltip
+          contentStyle={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: 6,
+            fontSize: 13,
+          }}
           formatter={(value: unknown) => (typeof value === "number" ? value.toFixed(1) : String(value))}
         />
-        <Legend />
-        <Bar dataKey="risk" name="Raw risk" fill="#ff7f0e" />
-        <Bar dataKey="confidencePct" name="Confidence (%)" fill="#4c7bd6" />
+        <Legend wrapperStyle={{ fontSize: 13 }} />
+        <Bar dataKey="risk" name="Raw risk" fill="#ff7f0e" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="confidencePct" name="Confidence (%)" fill="#4c7bd6" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

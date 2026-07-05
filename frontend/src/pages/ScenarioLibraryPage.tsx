@@ -36,7 +36,6 @@ export function ScenarioLibraryPage() {
               key={scenario.key}
               to={`/scenarios/${scenario.key}`}
               className="card"
-              style={{ textDecoration: "none", color: "inherit" }}
             >
               <h3>{scenario.title}</h3>
               <p>{scenario.description}</p>

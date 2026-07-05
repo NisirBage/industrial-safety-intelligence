@@ -1,0 +1,109 @@
+<svg viewBox="0 0 594 841" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!--
+    A1 poster (594mm x 841mm at 1 viewBox unit = 1mm), designed to be
+    read from about 2 metres: headline ~50mm, stage titles ~20mm, giant
+    stats ~46mm. Every number on this poster is the same grep-verified
+    count used in lib/presentationScript.ts::PLATFORM_STATS - nothing
+    here is a new figure invented for print.
+  -->
+  <defs>
+    <linearGradient id="header-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f2430" />
+      <stop offset="100%" stop-color="#2d3748" />
+    </linearGradient>
+    <marker id="poster-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c3cdd8" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="594" height="841" fill="#f4f6f8" />
+
+  <!-- Header -->
+  <rect x="0" y="0" width="594" height="150" fill="url(#header-bg)" />
+  <text x="297" y="66" text-anchor="middle" font-size="34" font-weight="800" fill="#f4f6f8" letter-spacing="0.5">
+    INDUSTRIAL SAFETY INTELLIGENCE
+  </text>
+  <text x="297" y="92" text-anchor="middle" font-size="13" fill="#c3cdd8" letter-spacing="0.5">
+    DETERMINISTIC AI &#183; EXPLAINABLE DECISION ENGINE &#183; LIVE DIGITAL TWIN
+  </text>
+  <text x="297" y="122" text-anchor="middle" font-size="10" fill="#8b98a8">
+    No LLM. No black box. No randomness in the risk formula. Every decision traces to a named, published rule.
+  </text>
+
+  <!-- Narrative flow: Detect -> Explain -> Replay -> Recommend -> Report -->
+  <g font-size="10" fill="#334155">
+    <!-- connecting spine -->
+    <line x1="70" y1="200" x2="70" y2="640" stroke="#c3cdd8" stroke-width="3" marker-end="url(#poster-arrow)" />
+
+    <!-- Stage 1: DETECT -->
+    <circle cx="70" cy="200" r="26" fill="#ff7f0e" />
+    <text x="70" y="207" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a1a">1</text>
+    <text x="115" y="192" font-size="20" font-weight="800" fill="#1f2430">DETECT</text>
+    <text x="115" y="212" font-size="11" fill="#5b6472">4 independent deterministic agents continuously score gas, equipment,</text>
+    <text x="115" y="226" font-size="11" fill="#5b6472">worker exposure, and permit risk from live sensor and permit data.</text>
+
+    <!-- Stage 2: EXPLAIN -->
+    <circle cx="70" cy="290" r="26" fill="#ff7f0e" />
+    <text x="70" y="297" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a1a">2</text>
+    <text x="115" y="282" font-size="20" font-weight="800" fill="#1f2430">EXPLAIN</text>
+    <text x="115" y="302" font-size="11" fill="#5b6472">Fusion combines agent scores through a published closed-form formula.</text>
+    <text x="115" y="316" font-size="11" fill="#5b6472">Every tier change cites the exact rule that fired - fully auditable.</text>
+
+    <!-- Stage 3: REPLAY -->
+    <circle cx="70" cy="380" r="26" fill="#ff7f0e" />
+    <text x="70" y="387" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a1a">3</text>
+    <text x="115" y="372" font-size="20" font-weight="800" fill="#1f2430">REPLAY</text>
+    <text x="115" y="392" font-size="11" fill="#5b6472">Every scenario is a scrubbable Time Machine: rewind, pause, and step</text>
+    <text x="115" y="406" font-size="11" fill="#5b6472">through an incident tick by tick, synced across every dashboard.</text>
+
+    <!-- Stage 4: RECOMMEND -->
+    <circle cx="70" cy="470" r="26" fill="#ff7f0e" />
+    <text x="70" y="477" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a1a">4</text>
+    <text x="115" y="462" font-size="20" font-weight="800" fill="#1f2430">RECOMMEND</text>
+    <text x="115" y="482" font-size="11" fill="#5b6472">A prioritized action queue - ETA, required personnel/equipment, SOP</text>
+    <text x="115" y="496" font-size="11" fill="#5b6472">reference, and qualitative business impact - never a fabricated number.</text>
+
+    <!-- Stage 5: REPORT -->
+    <circle cx="70" cy="560" r="26" fill="#ff7f0e" />
+    <text x="70" y="567" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a1a">5</text>
+    <text x="115" y="552" font-size="20" font-weight="800" fill="#1f2430">REPORT</text>
+    <text x="115" y="572" font-size="11" fill="#5b6472">Executive Dashboard, immutable Audit Trail, and a Counterfactual</text>
+    <text x="115" y="586" font-size="11" fill="#5b6472">Comparator that proves the case against a legacy single-sensor alarm.</text>
+  </g>
+
+  <!-- Giant stats -->
+  <rect x="20" y="630" width="554" height="140" rx="10" fill="#1f2430" />
+  <g text-anchor="middle" fill="#f4f6f8">
+    <text x="76" y="695" font-size="40" font-weight="800">4</text>
+    <text x="76" y="715" font-size="9" fill="#c3cdd8">DETERMINISTIC</text>
+    <text x="76" y="726" font-size="9" fill="#c3cdd8">AGENTS</text>
+
+    <text x="187" y="695" font-size="40" font-weight="800">21</text>
+    <text x="187" y="715" font-size="9" fill="#c3cdd8">DETERMINISTIC RULE</text>
+    <text x="187" y="726" font-size="9" fill="#c3cdd8">IDENTIFIERS</text>
+
+    <text x="298" y="695" font-size="40" font-weight="800">19</text>
+    <text x="298" y="715" font-size="9" fill="#c3cdd8">REST API</text>
+    <text x="298" y="726" font-size="9" fill="#c3cdd8">ENDPOINTS</text>
+
+    <text x="409" y="695" font-size="40" font-weight="800">21</text>
+    <text x="409" y="715" font-size="9" fill="#c3cdd8">FRONTEND</text>
+    <text x="409" y="726" font-size="9" fill="#c3cdd8">PAGES</text>
+
+    <text x="520" y="695" font-size="40" font-weight="800">467</text>
+    <text x="520" y="715" font-size="9" fill="#c3cdd8">AUTOMATED</text>
+    <text x="520" y="726" font-size="9" fill="#c3cdd8">TESTS</text>
+  </g>
+  <line x1="132" y1="655" x2="132" y2="745" stroke="#3a4152" stroke-width="1" />
+  <line x1="243" y1="655" x2="243" y2="745" stroke="#3a4152" stroke-width="1" />
+  <line x1="354" y1="655" x2="354" y2="745" stroke="#3a4152" stroke-width="1" />
+  <line x1="465" y1="655" x2="465" y2="745" stroke="#3a4152" stroke-width="1" />
+
+  <!-- Footer -->
+  <text x="297" y="800" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2430">
+    Deterministic. Explainable. Production-Ready.
+  </text>
+  <text x="297" y="820" text-anchor="middle" font-size="10" fill="#5b6472">
+    Docker &#183; PostgreSQL &#183; Prometheus &#183; OpenAPI &#183; Structured Logging
+  </text>
+</svg>

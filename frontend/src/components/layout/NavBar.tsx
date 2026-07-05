@@ -3,9 +3,11 @@ import { NavLink } from "react-router-dom";
 import { useDemoMode } from "../../context/DemoModeContext";
 import { usePolling } from "../../context/PollingContext";
 import { usePresentationMode } from "../../context/PresentationModeContext";
+import { ThemeToggle } from "../common/ThemeToggle";
 
 const LINKS = [
   { to: "/", label: "Overview", end: true },
+  { to: "/story", label: "Story Demo" },
   { to: "/digital-twin", label: "Digital Twin" },
   { to: "/operations", label: "Operations Center" },
   { to: "/executive", label: "Executive" },
@@ -46,6 +48,7 @@ export function NavBar() {
       >
         Presentation Mode
       </button>
+      <ThemeToggle />
       <div className="polling-controls">
         <label>
           <input

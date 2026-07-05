@@ -22,6 +22,7 @@ export function ActionQueue({
   activePermitTypes,
   equipment,
   onFocusZone,
+  autoExpandFirst = false,
 }: {
   actions: PrioritizedAction[];
   zoneId: string;
@@ -33,6 +34,7 @@ export function ActionQueue({
   activePermitTypes: string[];
   equipment: EquipmentInfo[] | undefined;
   onFocusZone?: (zoneId: string) => void;
+  autoExpandFirst?: boolean;
 }) {
   if (actions.length === 0) {
     return <p>No recommended actions right now - this zone is at NORMAL.</p>;
@@ -40,7 +42,7 @@ export function ActionQueue({
 
   return (
     <ol className="action-queue">
-      {actions.map((action) => (
+      {actions.map((action, index) => (
         <ActionCard
           key={action.id}
           action={action}
@@ -53,6 +55,7 @@ export function ActionQueue({
           activePermitTypes={activePermitTypes}
           equipment={equipment}
           onFocusZone={onFocusZone}
+          defaultExpanded={autoExpandFirst && index === 0}
         />
       ))}
     </ol>

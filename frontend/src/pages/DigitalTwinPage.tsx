@@ -99,7 +99,12 @@ export function DigitalTwinPage() {
       >
         <div className="digital-twin-layout">
           <div>
-            <PlantMap zones={mapZones} onZoneClick={setSelectedZoneId} showLegend />
+            <PlantMap
+              zones={mapZones}
+              onZoneClick={setSelectedZoneId}
+              showLegend
+              selectedZoneId={selectedZoneId}
+            />
           </div>
 
           {selected && (

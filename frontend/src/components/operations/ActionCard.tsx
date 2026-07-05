@@ -40,6 +40,7 @@ export function ActionCard({
   activePermitTypes,
   equipment,
   onFocusZone,
+  defaultExpanded = false,
 }: {
   action: PrioritizedAction;
   zoneId: string;
@@ -51,8 +52,13 @@ export function ActionCard({
   activePermitTypes: string[];
   equipment: EquipmentInfo[] | undefined;
   onFocusZone?: (zoneId: string) => void;
+  /** Item 6 (Presentation Mode Scene 6) - auto-opens the highest
+   * priority action's detail without a click, so the guided tour
+   * never needs manual interaction. Defaults to false everywhere
+   * else - the Operations Center itself is unaffected. */
+  defaultExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const sop = getSopReference(action.id, activePermitTypes);
 
   const evidence =

@@ -1,0 +1,155 @@
+<svg viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b6b7c" />
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7f9fb" />
+      <stop offset="100%" stop-color="#eef1f5" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="900" fill="url(#bg)" />
+
+  <text x="600" y="40" text-anchor="middle" font-size="26" font-weight="700" fill="#1f2933">
+    Industrial Safety Intelligence — System Walkthrough
+  </text>
+  <text x="600" y="64" text-anchor="middle" font-size="13" fill="#5b6b7c">
+    Deterministic Compound Risk Engine · Frozen since Core Freeze v1.0 · every downstream surface consumes it, never edits it
+  </text>
+
+  <!-- Band 1: Simulation input -->
+  <rect x="40" y="90" width="1120" height="90" rx="10" fill="#e8edf2" stroke="#c3cdd8" />
+  <text x="60" y="112" font-size="13" font-weight="700" fill="#334155">SIMULATION &amp; INPUT</text>
+  <g font-size="12" fill="#1f2933">
+    <rect x="60" y="122" width="190" height="42" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="155" y="147" text-anchor="middle">Scenario YAML</text>
+    <rect x="270" y="122" width="190" height="42" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="365" y="147" text-anchor="middle">Scenario Builder (UI)</text>
+    <rect x="480" y="122" width="190" height="42" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="575" y="141" text-anchor="middle">Deterministic</text>
+    <text x="575" y="155" text-anchor="middle">Simulation Runner</text>
+    <rect x="690" y="122" width="190" height="42" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="785" y="141" text-anchor="middle">Sensor Readings</text>
+    <text x="785" y="155" text-anchor="middle">+ Permits</text>
+    <rect x="900" y="122" width="220" height="42" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="1010" y="147" text-anchor="middle">PostgreSQL (persisted)</text>
+  </g>
+  <line x1="250" y1="143" x2="270" y2="143" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="460" y1="143" x2="480" y2="143" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="670" y1="143" x2="690" y2="143" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="880" y1="143" x2="900" y2="143" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Band 2: Frozen deterministic engine -->
+  <rect x="40" y="200" width="1120" height="260" rx="10" fill="#eaf0fb" stroke="#9fb3d9" stroke-width="2" />
+  <text x="60" y="224" font-size="13" font-weight="700" fill="#1e3a5f">DETERMINISTIC ENGINE — FROZEN (read-only, no ADR = no edit)</text>
+
+  <rect x="60" y="240" width="150" height="46" rx="6" fill="#ffffff" stroke="#4c6a92" />
+  <text x="135" y="268" text-anchor="middle" font-size="12">Context Builders</text>
+
+  <rect x="240" y="234" width="180" height="130" rx="6" fill="#ffffff" stroke="#4c6a92" />
+  <text x="330" y="252" text-anchor="middle" font-size="12" font-weight="700">4 Agents</text>
+  <text x="330" y="272" text-anchor="middle" font-size="11">Gas Risk</text>
+  <text x="330" y="290" text-anchor="middle" font-size="11">Worker Exposure</text>
+  <text x="330" y="308" text-anchor="middle" font-size="11">Equipment Status</text>
+  <text x="330" y="326" text-anchor="middle" font-size="11">Permit Intelligence</text>
+  <text x="330" y="350" text-anchor="middle" font-size="10" fill="#5b6b7c">(Scheduler-orchestrated)</text>
+
+  <rect x="450" y="240" width="130" height="46" rx="6" fill="#ffffff" stroke="#4c6a92" />
+  <text x="515" y="268" text-anchor="middle" font-size="12">Fusion</text>
+
+  <rect x="610" y="240" width="130" height="46" rx="6" fill="#ffffff" stroke="#4c6a92" />
+  <text x="675" y="268" text-anchor="middle" font-size="12">Tiering</text>
+
+  <rect x="770" y="240" width="150" height="46" rx="6" fill="#ffffff" stroke="#4c6a92" />
+  <text x="845" y="268" text-anchor="middle" font-size="12">Justification</text>
+
+  <rect x="960" y="240" width="170" height="46" rx="6" fill="#fff7e6" stroke="#c98a1c" />
+  <text x="1045" y="262" text-anchor="middle" font-size="12" font-weight="700">Counterfactual</text>
+  <text x="1045" y="278" text-anchor="middle" font-size="10">independent · naive baseline</text>
+
+  <line x1="210" y1="263" x2="240" y2="263" stroke="#4c6a92" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="420" y1="263" x2="450" y2="263" stroke="#4c6a92" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="580" y1="263" x2="610" y2="263" stroke="#4c6a92" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="740" y1="263" x2="770" y2="263" stroke="#4c6a92" stroke-width="2" marker-end="url(#arrow)" />
+
+  <text x="330" y="400" text-anchor="middle" font-size="11" fill="#5b6b7c">
+    R_base = Σ(wᵢ·rᵢ)   R_compound = min(100, R_base·(1 + κ·max(0, n−1)))   asymmetric hysteresis + dwell-time tiering
+  </text>
+  <text x="330" y="420" text-anchor="middle" font-size="11" fill="#5b6b7c">
+    21 distinct deterministic rule identifiers · 0 uses of random.* anywhere · byte-identical output for identical input
+  </text>
+  <text x="1045" y="310" text-anchor="middle" font-size="10" fill="#8a5a10">
+    hard trip point only — no saturating
+  </text>
+  <text x="1045" y="324" text-anchor="middle" font-size="10" fill="#8a5a10">
+    curve, no confidence, by design
+  </text>
+
+  <line x1="1010" y1="164" x2="1010" y2="240" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Band 3: API -->
+  <rect x="40" y="480" width="1120" height="90" rx="10" fill="#e8edf2" stroke="#c3cdd8" />
+  <text x="60" y="502" font-size="13" font-weight="700" fill="#334155">REST API (19 endpoints) — orchestration only, never re-derives a decision</text>
+  <g font-size="11" fill="#1f2933">
+    <rect x="60" y="512" width="150" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="135" y="536" text-anchor="middle">/risk, /replay</text>
+    <rect x="220" y="512" width="150" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="295" y="536" text-anchor="middle">/zones, /permits</text>
+    <rect x="380" y="512" width="170" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="465" y="536" text-anchor="middle">/counterfactual</text>
+    <rect x="560" y="512" width="190" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="655" y="536" text-anchor="middle">/scenario-builder</text>
+    <rect x="760" y="512" width="150" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="835" y="536" text-anchor="middle">/workers</text>
+    <rect x="920" y="512" width="200" height="40" rx="6" fill="#ffffff" stroke="#94a3b8" />
+    <text x="1020" y="530" text-anchor="middle">/metrics (Prometheus)</text>
+    <text x="1020" y="544" text-anchor="middle">OpenAPI docs</text>
+  </g>
+  <line x1="600" y1="460" x2="600" y2="512" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Band 4: Frontend surfaces -->
+  <rect x="40" y="590" width="1120" height="230" rx="10" fill="#eafaf0" stroke="#a7d9bc" />
+  <text x="60" y="614" font-size="13" font-weight="700" fill="#1e5f3a">FRONTEND (21 pages) — visualization &amp; planning only, no recomputation</text>
+
+  <g font-size="11" fill="#1f2933">
+    <rect x="60" y="630" width="170" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="145" y="655" text-anchor="middle" font-weight="700">Overview</text>
+    <text x="145" y="672" text-anchor="middle">Plant map, zones</text>
+
+    <rect x="250" y="630" width="170" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="335" y="655" text-anchor="middle" font-weight="700">Digital Twin</text>
+    <text x="335" y="672" text-anchor="middle">Zone inspector</text>
+
+    <rect x="440" y="630" width="170" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="525" y="655" text-anchor="middle" font-weight="700">Time Machine</text>
+    <text x="525" y="672" text-anchor="middle">Tick-by-tick replay</text>
+
+    <rect x="630" y="630" width="170" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="715" y="655" text-anchor="middle" font-weight="700">Decision Graph</text>
+    <text x="715" y="672" text-anchor="middle">Root Cause Explorer</text>
+
+    <rect x="820" y="630" width="170" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="905" y="655" text-anchor="middle" font-weight="700">Operations Center</text>
+    <text x="905" y="672" text-anchor="middle">Action queue, SOPs</text>
+
+    <rect x="1010" y="630" width="130" height="60" rx="6" fill="#ffffff" stroke="#5fa87d" />
+    <text x="1075" y="655" text-anchor="middle" font-weight="700">Executive</text>
+    <text x="1075" y="672" text-anchor="middle">KPIs, readiness</text>
+
+    <rect x="440" y="710" width="360" height="60" rx="6" fill="#fff0e6" stroke="#d98c4a" stroke-width="2" />
+    <text x="620" y="735" text-anchor="middle" font-weight="700">Presentation Mode</text>
+    <text x="620" y="752" text-anchor="middle">Guided 90-second tour — this document's subject</text>
+  </g>
+
+  <line x1="145" y1="590" x2="145" y2="90" stroke="none" />
+  <line x1="600" y1="570" x2="600" y2="630" stroke="#5b6b7c" stroke-width="2" marker-end="url(#arrow)" />
+
+  <rect x="40" y="800" width="1120" height="80" rx="10" fill="#f4f6f8" stroke="#d5dce3" />
+  <text x="600" y="828" text-anchor="middle" font-size="12" fill="#5b6b7c">
+    294 backend tests (pytest) · 155 frontend tests (vitest) · Docker deployment · Structured logging · PostgreSQL
+  </text>
+  <text x="600" y="850" text-anchor="middle" font-size="12" font-style="italic" fill="#5b6b7c">
+    "Deterministic · Explainable · Production Ready"
+  </text>
+</svg>

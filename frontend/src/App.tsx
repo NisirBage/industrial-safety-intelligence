@@ -16,6 +16,7 @@ import { ExplainabilityPage } from "./pages/ExplainabilityPage";
 import { OperationsCenterPage } from "./pages/OperationsCenterPage";
 import { OverviewPage } from "./pages/OverviewPage";
 import { PermitsPage } from "./pages/PermitsPage";
+import { PresentationModePage } from "./pages/PresentationModePage";
 import { ResearchModePage } from "./pages/ResearchModePage";
 import { ScenarioBuilderPage } from "./pages/ScenarioBuilderPage";
 import { ScenarioLibraryPage } from "./pages/ScenarioLibraryPage";
@@ -59,6 +60,7 @@ function App() {
                     <Route path="/comparison" element={<DecisionComparisonPage />} />
                     <Route path="/time-machine" element={<TimeMachinePage />} />
                     <Route path="/operations" element={<OperationsCenterPage />} />
+                    <Route path="/story" element={<PresentationModePage />} />
                   </Routes>
                 </DashboardLayout>
               </ReplayProvider>
