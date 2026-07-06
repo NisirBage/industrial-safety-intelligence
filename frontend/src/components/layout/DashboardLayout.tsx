@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
+import { JudgeQuickViewOverlay } from "../presentation/JudgeQuickViewOverlay";
 import { usePresentationMode } from "../../context/PresentationModeContext";
 import { DemoModeBanner } from "./DemoModeBanner";
 import { NavBar } from "./NavBar";
@@ -37,6 +38,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           Exit Presentation (Esc)
         </button>
       )}
+      <JudgeQuickViewOverlay />
       <main className="dashboard-content dashboard-content-transition" ref={contentRef}>
         {children}
       </main>

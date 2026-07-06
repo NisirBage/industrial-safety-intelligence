@@ -12,7 +12,7 @@ import { formatTimestamp, zoneLabel } from "../lib/format";
  * triggers a run, see docs/frontend/README.md).
  */
 export function ScenarioLibraryPage() {
-  const { data, isLoading, error } = useScenarios();
+  const { data, isLoading, error, refetch } = useScenarios();
   const { data: zones } = useZones();
   const scenarios = data ?? [];
 
@@ -29,6 +29,9 @@ export function ScenarioLibraryPage() {
         error={error}
         isEmpty={scenarios.length === 0}
         emptyLabel="No scenarios found."
+        emptyHint="Scenarios are authored YAML files under scenarios/, or built interactively in the Scenario Builder."
+        emptyAction={{ label: "Go to Scenario Builder", to: "/scenario-builder" }}
+        onRetry={() => refetch()}
       >
         <div className="card-grid">
           {scenarios.map((scenario) => (

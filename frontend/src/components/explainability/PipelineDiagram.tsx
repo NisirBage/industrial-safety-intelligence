@@ -98,7 +98,7 @@ export function PipelineDiagram({
     },
     fusion: {
       input: `${agentEntries.length} agent outputs above.`,
-      output: `Compound risk score: ${assessment.compound_risk_score.toFixed(2)}`,
+      output: `Overall plant risk: ${assessment.compound_risk_score.toFixed(2)}`,
       contribution: justification
         ? `Interaction bonus applied: ${justification.interactionBonusApplied.toFixed(2)}`
         : undefined,
@@ -106,7 +106,7 @@ export function PipelineDiagram({
       sourceTimestamp: assessment.timestamp,
     },
     tiering: {
-      input: `Compound risk score ${assessment.compound_risk_score.toFixed(2)}.`,
+      input: `Overall plant risk ${assessment.compound_risk_score.toFixed(2)}.`,
       output: justification
         ? `${justification.tierBefore} → ${justification.tierAfter}`
         : assessment.tier,
@@ -198,7 +198,7 @@ export function PipelineDiagram({
           checked={showCounterfactualOverlay}
           onChange={(event) => setShowCounterfactualOverlay(event.target.checked)}
         />
-        Show counterfactual overlay
+        Show alternative decision overlay
       </label>{" "}
       <button
         type="button"

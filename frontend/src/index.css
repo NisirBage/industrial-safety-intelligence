@@ -171,8 +171,23 @@ body {
   font-weight: 600;
 }
 
-.start-demo-button {
+.judge-quick-view-button {
   margin-left: auto;
+  background: var(--surface-raised, var(--surface));
+  color: var(--text);
+  border: 1px solid var(--tier-elevated);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.judge-quick-view-button:hover {
+  border-color: var(--tier-critical);
+  color: var(--tier-critical);
+}
+
+.start-demo-button {
   background: var(--tier-elevated);
   color: #fff;
   border: none;
@@ -506,6 +521,10 @@ button:not(:disabled):active::after {
   .zone-inspector-drawer,
   .operator-timeline-entry,
   .execute-success-banner,
+  .demo-timeline-card,
+  .decision-timeline-node,
+  .executive-story-list li,
+  .mission-control-action-list li,
   button::after,
   body {
     transition: none;
@@ -548,14 +567,90 @@ button:not(:disabled):active::after {
   color: var(--text-muted);
 }
 
+/* Empty states (M20 Part 7) - always an icon, a plain-language
+   reason, and (when the caller supplies one) a real next-step link -
+   never a bare blank space. */
+.state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--space-8) var(--space-4);
+}
+
+.empty-state-illustration {
+  color: var(--border-strong);
+  margin-bottom: 0.25rem;
+}
+
+.state-empty-label {
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.state-empty-hint {
+  margin: 0;
+  max-width: 32rem;
+  font-size: var(--font-size-sm);
+}
+
+.state-empty-action {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+/* Error states (M20 Part 8) - friendly primary message + Retry,
+   the real backend error envelope demoted to a collapsed <details>
+   disclosure rather than the first thing a user sees. */
 .state-error {
+  text-align: left;
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.state-error-heading {
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.35rem;
+  text-align: center;
+}
+
+.state-error-friendly {
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.state-error-retry {
+  display: block;
+  margin: 0 auto 1rem;
+  background: var(--tier-elevated);
+  color: #1a1a1a;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.state-error-details {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
   color: var(--error);
+}
+
+.state-error-details summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .state-error-code {
   font-family: ui-monospace, Consolas, monospace;
   font-weight: 600;
-  margin: 0 0 0.25rem;
+  margin: 0.5rem 0 0.25rem;
 }
 
 .trend-up {
@@ -809,6 +904,118 @@ tbody tr:hover {
 }
 
 .decision-evolution-transition {
+  font-weight: 600;
+}
+
+/* M23 Part 1 - Decision Timeline */
+.decision-timeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.decision-timeline-node {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg, var(--bg));
+  color: inherit;
+  font: inherit;
+  opacity: 0.55;
+  animation: card-detail-fade-in var(--duration-base) var(--ease-standard);
+}
+
+.decision-timeline-node-past {
+  opacity: 1;
+}
+
+.decision-timeline-node-current {
+  border-left-color: var(--tier-elevated);
+  box-shadow: 0 0 0 1px var(--tier-elevated);
+}
+
+.decision-timeline-node-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.decision-timeline-node-time {
+  font-weight: 600;
+}
+
+.decision-timeline-node-agents,
+.decision-timeline-node-recommendation {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+}
+
+/* M23 Part 6 - Executive Story */
+.executive-story-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.executive-story-list li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  animation: card-detail-fade-in var(--duration-base) var(--ease-standard);
+}
+
+.executive-story-list li:last-child {
+  border-bottom: none;
+}
+
+.executive-story-time {
+  font-weight: 600;
+}
+
+/* M23 Part 7 - Engine Insight (simplified 5-step explanation) */
+.engine-insight-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.engine-insight-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.engine-insight-step-number {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--tier-elevated);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.engine-insight-step-label {
+  margin: 0;
   font-weight: 600;
 }
 
@@ -2099,7 +2306,37 @@ tbody tr:hover {
 .presentation-mode-progress-label {
   font-size: 0.85rem;
   color: var(--text-muted);
+  margin: 0 0 0.25rem;
+}
+
+.presentation-mode-speaker-timer {
+  font-size: 0.85rem;
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--text-muted);
   margin: 0 0 1rem;
+}
+
+.scene-mission-control-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.scene-final-recommendation-card {
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.scene-final-recommendation-text {
+  font-size: var(--font-size-lg);
+  margin: var(--space-2) 0;
+}
+
+.scene-business-impact-bullets {
+  max-width: 40rem;
+  margin: var(--space-4) auto 0;
+  text-align: left;
 }
 
 .presentation-mode-stage {
@@ -2374,6 +2611,130 @@ tbody tr:hover {
   border-bottom: 1px solid var(--border);
 }
 
+/* M20 Part 6 - was referenced by several pages (Scenario Library,
+   Decision Journal) but never had a rule, so it silently rendered as
+   a plain paragraph. Matches the executive-copy tone those intro
+   sentences are meant to carry. */
+.page-intro {
+  color: var(--text-muted);
+  max-width: 60rem;
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-md);
+}
+
+.research-mode-card {
+  margin-bottom: var(--space-4);
+}
+
+/* M20 Part 11 - Judge Quick View's dismissible talking-points overlay,
+   floating over whatever page it lands on (Mission Control) rather
+   than pushed into the page flow. */
+.judge-quick-view-overlay {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: min(360px, calc(100vw - 2 * var(--space-4)));
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 40;
+  box-shadow: var(--shadow-3);
+  border-radius: var(--radius-lg);
+}
+
+.judge-quick-view-overlay .talking-points-panel {
+  margin-top: 0;
+}
+
+.judge-quick-view-dismiss {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+}
+
+/* M21 Part 2 - Diagnostics */
+.diagnostics-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.diagnostics-card-header h3 {
+  margin: 0;
+}
+
+.diagnostics-status {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.diagnostics-status-green {
+  background: var(--tier-normal);
+}
+
+.diagnostics-status-yellow {
+  background: var(--tier-watch);
+}
+
+.diagnostics-status-red {
+  background: var(--tier-critical);
+}
+
+.diagnostics-card-unavailable {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.diagnostics-unavailable-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.demo-launcher-action {
+  margin-top: var(--space-6);
+  text-align: center;
+}
+
+.demo-launcher-button {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+  background: var(--tier-elevated);
+  color: #1a1a1a;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: var(--space-2);
+}
+
+.judge-quick-view-launch-steps {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-size: var(--font-size-sm);
+}
+
+.judge-quick-view-launch-steps li {
+  padding: 0.15rem 0;
+  color: var(--text-muted);
+}
+
+.judge-quick-view-launch-steps .launch-step-done {
+  color: var(--tier-normal-text);
+}
+
 /* Judge Mode toggle + banner (Presentation Mode) */
 
 .judge-mode-toggle {
@@ -2497,6 +2858,198 @@ tbody tr:hover {
 
 .demo-readiness-detail {
   color: var(--text-muted);
+}
+
+/* M20 Part 1 - Mission Control */
+.mission-control-hero {
+  margin-bottom: var(--space-6);
+}
+
+.mission-control-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-2) 0;
+}
+
+.mission-control-hero-label {
+  margin: 0 0 0.15rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.mission-control-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-areas:
+    "twin alerts"
+    "twin agents"
+    "actions actions";
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.mission-control-twin {
+  grid-area: twin;
+}
+
+.mission-control-alerts {
+  grid-area: alerts;
+}
+
+.mission-control-agents {
+  grid-area: agents;
+}
+
+.mission-control-actions {
+  grid-area: actions;
+}
+
+@media (max-width: 1000px) {
+  .mission-control-hero-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mission-control-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "twin"
+      "alerts"
+      "agents"
+      "actions";
+  }
+}
+
+.mission-control-alert-feed {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.mission-control-alert-icon {
+  font-weight: 700;
+}
+
+.mission-control-agent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mission-control-agent-item {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.mission-control-agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.mission-control-agent-reason {
+  margin: 0.35rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.mission-control-action-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* M23 Part 5 - animated recommendation queue: same fade-in every other
+   growing list on this platform already uses, applied per-item so a
+   reordered/refreshed queue visibly settles in rather than jump-cutting. */
+.mission-control-action-list li {
+  animation: card-detail-fade-in var(--duration-base) var(--ease-standard);
+}
+
+.mission-control-impact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mission-control-action-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 0.25rem;
+}
+
+/* M20 Part 2 - Live Demo Timeline */
+.demo-timeline-strip {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) 0;
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+}
+
+.demo-timeline-strip li {
+  flex: 0 0 auto;
+}
+
+.demo-timeline-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 160px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.demo-timeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.demo-timeline-card-current {
+  border-color: var(--tier-elevated);
+  box-shadow: var(--shadow-3);
+  transform: scale(1.06);
+}
+
+.demo-timeline-card-tick {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.demo-timeline-card-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.demo-timeline-card-zone {
+  font-size: var(--font-size-sm);
+}
+
+.demo-timeline-twin {
+  margin-bottom: var(--space-4);
 }
 
 @media (max-width: 700px) {

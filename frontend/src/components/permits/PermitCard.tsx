@@ -18,7 +18,7 @@ export function PermitCard({ permit, zones }: { permit: Permit; zones?: Zone[] }
       </button>
       {expanded && (
         <dl className="permit-card-detail">
-          <dt>Permit ID</dt>
+          <dt>Work Authorization ID</dt>
           <dd>{permit.permit_id}</dd>
           <dt>Authorizing officer</dt>
           <dd>{permit.authorizing_officer_id}</dd>

@@ -1,4 +1,4 @@
-import { ApiError } from "../../api/client";
+import { API_BASE_URL, ApiError } from "../../api/client";
 import type { RiskAssessment, ScenarioSummary } from "../../api/types";
 import { useHealth } from "../../hooks/useHealth";
 import { PLATFORM_STATS, PRESENTATION_SCENES } from "../../lib/presentationScript";
@@ -32,7 +32,16 @@ export function DemoReadinessPanel({ scenarios, currentRisk }: DemoReadinessPane
   const networkReachable =
     health.isSuccess || (health.isError && health.error instanceof ApiError && health.error.status !== null);
 
+  const configOk = /^https?:\/\/.+/.test(API_BASE_URL);
+
   const checks: ReadinessCheck[] = [
+    {
+      label: "Frontend configured",
+      ok: configOk,
+      detail: configOk
+        ? `API base URL: ${API_BASE_URL}`
+        : `VITE_API_BASE_URL is not a valid URL ("${API_BASE_URL}") - check the frontend's .env file.`,
+    },
     {
       label: "Frontend connected to backend",
       ok: networkReachable,
@@ -63,7 +72,7 @@ export function DemoReadinessPanel({ scenarios, currentRisk }: DemoReadinessPane
           : "GET /api/v1/scenarios returned no scenarios - Presentation Mode has nothing to replay.",
     },
     {
-      label: "Risk assessments present",
+      label: "Safety assessments present",
       ok: (currentRisk?.length ?? 0) > 0,
       detail:
         (currentRisk?.length ?? 0) > 0

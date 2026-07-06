@@ -9,7 +9,11 @@ export function PermitsPage() {
 
   return (
     <section>
-      <h1>Permits</h1>
+      <h1>Work Authorizations</h1>
+      <p className="page-intro">
+        Every hot work, confined space, isolation, and line break authorization, grouped by
+        status - active, flagged, and suspend-recommended.
+      </p>
       <div className="filters">
         <label>
           Zone:{" "}

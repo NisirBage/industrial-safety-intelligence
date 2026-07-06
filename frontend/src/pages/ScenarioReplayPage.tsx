@@ -181,7 +181,7 @@ export function ScenarioReplayPage() {
               <span>
                 Plant status: {twinPlantTier ? <TierBadge tier={twinPlantTier} /> : "—"}
               </span>
-              <span>Average compound score: {twinAverageScore.toFixed(1)}</span>
+              <span>Average plant risk: {twinAverageScore.toFixed(1)}</span>
               <span>Zones in this scenario: {zoneIds.length}</span>
               <Link to="/executive">Full Executive Overview &rarr;</Link>
             </div>

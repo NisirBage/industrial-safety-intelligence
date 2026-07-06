@@ -22,7 +22,7 @@ import { agentStage, groupRulesByStage } from "../lib/pipelineStages";
  */
 export function ResearchModePage() {
   const { assessmentId } = useParams<{ assessmentId: string }>();
-  const { data: assessment, isLoading, error } = useRiskAssessment(assessmentId);
+  const { data: assessment, isLoading, error, refetch } = useRiskAssessment(assessmentId);
   const { data: zones } = useZones();
 
   const justification = assessment ? parseJustification(assessment.justification) : null;
@@ -34,15 +34,22 @@ export function ResearchModePage() {
         <Link to="/zones">&larr; Zones</Link>
       </p>
       <h1>Research Mode</h1>
+      <p className="page-intro">
+        The full deterministic pipeline for one persisted assessment, in execution order - closer
+        to the wire than the Explainability view, with nothing summarized away.
+      </p>
       <QueryResult
         isLoading={isLoading}
         error={error}
         isEmpty={!assessment}
         emptyLabel="Assessment not found."
+        emptyHint="This assessment id doesn't match any persisted row - it may have been for a different environment."
+        emptyAction={{ label: "Go to Zones", to: "/zones" }}
+        onRetry={() => refetch()}
       >
         {assessment && (
           <>
-            <div className="card" style={{ marginBottom: "1rem" }}>
+            <div className="card research-mode-card">
               <p>
                 <strong>{zoneLabel(assessment.zone_id, zones)}</strong> &middot;{" "}
                 {formatTimestamp(assessment.timestamp)} &middot; assessment_id: {assessment.assessment_id}
@@ -63,14 +70,14 @@ export function ResearchModePage() {
               </p>
             </div>
 
-            <div className="card" style={{ marginBottom: "1rem" }}>
+            <div className="card research-mode-card">
               <h3>Pipeline</h3>
               <PipelineDiagram assessment={assessment} justification={justification} />
             </div>
 
             {justification ? (
               <>
-                <div className="card" style={{ marginBottom: "1rem" }}>
+                <div className="card research-mode-card">
                   <h3>1. Scheduler</h3>
                   <p>Agents that reported this tick: {Object.keys(justification.agentContributions).join(", ")}</p>
                 </div>
@@ -78,7 +85,7 @@ export function ResearchModePage() {
                 {Object.entries(justification.agentContributions).map(([agentName, contribution]) => {
                   const stage = stages.find((s) => s.stage === agentStage(agentName));
                   return (
-                    <div key={agentName} className="card" style={{ marginBottom: "1rem" }}>
+                    <div key={agentName} className="card research-mode-card">
                       <h3>2. {agentDisplayName(agentName)} Agent</h3>
                       <p>
                         Raw risk: {contribution.risk.toFixed(4)} &middot; Confidence:{" "}
@@ -97,10 +104,10 @@ export function ResearchModePage() {
                   );
                 })}
 
-                <div className="card" style={{ marginBottom: "1rem" }}>
+                <div className="card research-mode-card">
                   <h3>3. Fusion</h3>
                   <p>Interaction bonus applied: {justification.interactionBonusApplied.toFixed(4)}</p>
-                  <p>Resulting compound risk score: {assessment.compound_risk_score.toFixed(4)}</p>
+                  <p>Resulting overall plant risk: {assessment.compound_risk_score.toFixed(4)}</p>
                   <ul className="rules-fired-list">
                     {(stages.find((s) => s.stage === "Fusion")?.rules ?? []).map((rule) => (
                       <li key={rule} className="rule-tag">
@@ -110,7 +117,7 @@ export function ResearchModePage() {
                   </ul>
                 </div>
 
-                <div className="card" style={{ marginBottom: "1rem" }}>
+                <div className="card research-mode-card">
                   <h3>4. Tiering</h3>
                   <p className="tier-transition">
                     <TierBadge tier={justification.tierBefore} /> &rarr;{" "}
@@ -126,7 +133,7 @@ export function ResearchModePage() {
                 </div>
 
                 {stages.some((s) => s.stage === "Unattributed") && (
-                  <div className="card" style={{ marginBottom: "1rem" }}>
+                  <div className="card research-mode-card">
                     <h3>Unattributed Rules</h3>
                     <p>Rule identifiers this page doesn&apos;t yet have a stage mapping for.</p>
                     <ul className="rules-fired-list">

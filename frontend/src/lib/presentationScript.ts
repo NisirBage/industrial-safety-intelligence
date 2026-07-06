@@ -11,23 +11,33 @@ export interface PresentationScene {
 }
 
 /**
- * Item 2 (Story Timeline) - the fixed, authored sequence of scenes
- * and their on-screen durations. A plain data table, not logic - the
+ * M20 Part 3 (Guided Presentation) - the fixed, authored 10-slide
+ * sequence and their on-screen durations: Introduction, Plant
+ * Overview, Incident Begins, Multi-Agent Reasoning, Counterfactual,
+ * Executive Dashboard, Mission Control, Final Recommendation,
+ * Business Impact, Closing. A plain data table, not logic - the
  * scene *content* for each entry is a React component keyed by
  * `key`, defined in `pages/PresentationModePage.tsx`. Durations sum to
  * ~90s, matching the "judge understands the project within 90
  * seconds" objective; Scene 1 is fixed at 3s per the explicit spec.
+ * Replaces the earlier 10-scene sequence (title/digital-twin/incident/
+ * pipeline/decision-graph/operations/executive/counterfactual/replay/
+ * closing) - Pipeline and Decision Graph are now combined into one
+ * Multi-Agent Reasoning slide, Operations Center's queue is split
+ * across the new Mission Control and Final Recommendation slides, and
+ * the standalone Time Machine Replay slide is dropped (Time Machine
+ * itself is unchanged and still reachable from the nav).
  */
 export const PRESENTATION_SCENES: PresentationScene[] = [
-  { index: 0, key: "title", title: "Industrial Safety Intelligence", durationMs: 3000 },
-  { index: 1, key: "digital-twin", title: "Live Digital Twin", durationMs: 8000 },
-  { index: 2, key: "incident", title: "Incident Detected", durationMs: 10000 },
-  { index: 3, key: "pipeline", title: "AI Decision Engine", durationMs: 12000 },
-  { index: 4, key: "decision-graph", title: "Decision Graph", durationMs: 10000 },
-  { index: 5, key: "operations", title: "Operations Center", durationMs: 12000 },
-  { index: 6, key: "executive", title: "Executive Dashboard", durationMs: 8000 },
-  { index: 7, key: "counterfactual", title: "Counterfactual", durationMs: 10000 },
-  { index: 8, key: "replay", title: "Time Machine Replay", durationMs: 10000 },
+  { index: 0, key: "introduction", title: "Introduction", durationMs: 3000 },
+  { index: 1, key: "plant-overview", title: "Plant Overview", durationMs: 8000 },
+  { index: 2, key: "incident-begins", title: "Incident Begins", durationMs: 10000 },
+  { index: 3, key: "multi-agent-reasoning", title: "Multi-Agent Reasoning", durationMs: 14000 },
+  { index: 4, key: "counterfactual", title: "Alternative Decision", durationMs: 10000 },
+  { index: 5, key: "executive-dashboard", title: "Executive Dashboard", durationMs: 8000 },
+  { index: 6, key: "mission-control", title: "Mission Control", durationMs: 10000 },
+  { index: 7, key: "final-recommendation", title: "Final Recommendation", durationMs: 8000 },
+  { index: 8, key: "business-impact", title: "Business Impact", durationMs: 8000 },
   { index: 9, key: "closing", title: "Closing", durationMs: 8000 },
 ];
 
@@ -52,48 +62,30 @@ export interface SceneTalkingPoints {
  * already written out in full there.
  */
 export const SCENE_TALKING_POINTS: Record<string, SceneTalkingPoints> = {
-  title: {
+  introduction: {
     presenterNotes:
       "\"This is Industrial Safety Intelligence - a deterministic, explainable early-warning platform.\"",
     judgeTakeaway: "Every number on this slide is live - nothing scripted.",
     technicalDetail: "Sourced from GET /zones, GET /risk/current, GET /permits.",
     businessValue: "A plant manager sees operational status at a glance, no training required.",
   },
-  "digital-twin": {
+  "plant-overview": {
     presenterNotes: "\"Here's the plant as a digital twin - not a static diagram.\"",
     judgeTakeaway: "Permit icons are shape-coded by real permit type - point at one if active.",
     technicalDetail: "Site-plan layout is a fixed table of five named zones - a disclosed limitation, not hidden.",
     businessValue: "One screen replaces walking the plant floor to check status.",
   },
-  incident: {
+  "incident-begins": {
     presenterNotes: "\"Watch what happens when a real incident starts.\"",
     judgeTakeaway: "This tick is the first real index whose tier isn't normal - never hand-picked.",
     technicalDetail: "lib/presentationScript.ts::findFirstEscalationIndex over real replay history.",
     businessValue: "Early detection is the entire point of an early-warning system.",
   },
-  pipeline: {
-    presenterNotes: "\"Four independent deterministic agents combine through Fusion.\"",
-    judgeTakeaway: "\"Deterministic\" is a hard claim - ask what happens if you run it twice.",
-    technicalDetail: "Every score is a documented closed-form formula - saturating curve, weighted sum, hysteresis gate.",
-    businessValue: "No AI/ML in the decision path means no unexplainable false positives.",
-  },
-  "decision-graph": {
-    presenterNotes: "\"Here's why the score is what it is.\"",
+  "multi-agent-reasoning": {
+    presenterNotes: "\"Four independent deterministic agents combine through Fusion - here's why the score is what it is.\"",
     judgeTakeaway: "The percentage is a relative share of real numbers, not the literal Fusion weight.",
-    technicalDetail: "computeRelativeShares: risk_i / sum(risk_j) x 100, explicitly labeled as a normalization.",
-    businessValue: "An auditor can trace exactly which factor drove the decision.",
-  },
-  operations: {
-    presenterNotes: "\"The platform doesn't just detect - it recommends.\"",
-    judgeTakeaway: "Impact levels are qualitative by design - never a fabricated risk-reduction number.",
-    technicalDetail: "buildActionQueue attaches ETA/dependencies/personnel from a config table, not a model.",
-    businessValue: "An operator gets a prioritized to-do list, not just an alarm.",
-  },
-  executive: {
-    presenterNotes: "\"For a plant manager, one screen: is the plant ready to operate?\"",
-    judgeTakeaway: "Business impact is a categorical label over the real tier, not a dollar estimate.",
-    technicalDetail: "Reuses plantReadiness/averageCompoundScore, already computed for every other page.",
-    businessValue: "Answers the one question a plant manager actually has time to ask.",
+    technicalDetail: "Every score is a documented closed-form formula; computeRelativeShares: risk_i / sum(risk_j) x 100.",
+    businessValue: "No AI/ML in the decision path means no unexplainable false positives, and an auditor can trace exactly which factor drove the decision.",
   },
   counterfactual: {
     presenterNotes: "\"The naive baseline - a single-sensor threshold alarm.\"",
@@ -101,11 +93,29 @@ export const SCENE_TALKING_POINTS: Record<string, SceneTalkingPoints> = {
     technicalDetail: "explainComparison reused unchanged from the Decision Comparison milestone.",
     businessValue: "This is the concrete case for replacing a legacy single-sensor alarm system.",
   },
-  replay: {
-    presenterNotes: "\"Every tick you just saw is scrubbable.\"",
-    judgeTakeaway: "This is the same Time Machine an operator or auditor uses after a real incident.",
-    technicalDetail: "ReplayController reused unchanged; one shared ReplayContext across every page.",
-    businessValue: "Incident review/audit trail without a separate logging system.",
+  "executive-dashboard": {
+    presenterNotes: "\"For a plant manager, one screen: is the plant ready to operate?\"",
+    judgeTakeaway: "Business impact is a categorical label over the real tier, not a dollar estimate.",
+    technicalDetail: "Reuses plantReadiness/averageCompoundScore, already computed for every other page.",
+    businessValue: "Answers the one question a plant manager actually has time to ask.",
+  },
+  "mission-control": {
+    presenterNotes: "\"And here's everything at once - plant status, the twin, live alerts, and why, on one screen.\"",
+    judgeTakeaway: "Every panel reuses a hook/derivation already proven on another page - nothing new is computed here.",
+    technicalDetail: "MissionControlPage.tsx composes useCurrentRisk, parseJustification, and buildActionQueue.",
+    businessValue: "This is the screen an operator actually keeps open all shift.",
+  },
+  "final-recommendation": {
+    presenterNotes: "\"Of everything the platform could tell you to do right now, here's the one thing that matters most.\"",
+    judgeTakeaway: "Priority is positional over deriveRecommendations' own severity ordering - not a new ranking model.",
+    technicalDetail: "buildActionQueue attaches ETA/dependencies/personnel from a config table, not a model.",
+    businessValue: "An operator gets one prioritized next step, not just an alarm.",
+  },
+  "business-impact": {
+    presenterNotes: "\"Here's what a plant actually gains by running this.\"",
+    judgeTakeaway: "The advance-warning window is a real duration between two real persisted timestamps, not an estimate.",
+    technicalDetail: "Minutes between findFirstEscalationIndex and findPeakIndex's real timestamps in this replay.",
+    businessValue: "Earlier warning, an audit trail by default, and no added headcount to watch a dashboard.",
   },
   closing: {
     presenterNotes: "\"Deterministic. Explainable. Production ready.\"",

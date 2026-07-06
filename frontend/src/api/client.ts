@@ -13,6 +13,12 @@ import type { ErrorEnvelope } from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+/** Exposed read-only so diagnostic/readiness UI (Demo Launcher,
+ * Diagnostics page) can display what the frontend is actually
+ * configured to talk to, without a second hardcoded copy of the same
+ * fallback logic. */
+export const API_BASE_URL = BASE_URL;
+
 /**
  * Thrown for every non-2xx response and every transport failure.
  * Always carries the backend's own error envelope shape

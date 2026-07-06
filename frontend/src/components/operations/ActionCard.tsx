@@ -123,7 +123,7 @@ export function ActionCard({
                 : "None recorded"}
             </dd>
 
-            <dt>Affected permits</dt>
+            <dt>Affected work authorizations</dt>
             <dd>
               {activePermitTypes.length > 0
                 ? activePermitTypes.map(formatPermitType).join(", ")
@@ -133,7 +133,7 @@ export function ActionCard({
             <dt>Replay timestamp</dt>
             <dd>{formatTimestamp(assessment.timestamp)}</dd>
 
-            <dt>Counterfactual comparison</dt>
+            <dt>Alternative decision comparison</dt>
             <dd>
               {counterfactual
                 ? explainComparison(counterfactual.compound, counterfactual.counterfactual, justification)

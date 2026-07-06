@@ -3,10 +3,13 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { getRiskHistory } from "../api/risk";
+import type { RiskAssessment } from "../api/types";
 import { MiniSparkline } from "../components/common/MiniSparkline";
 import { QueryResult } from "../components/common/QueryResult";
 import { TierBadge } from "../components/common/TierBadge";
+import { ExecutiveStoryPanel } from "../components/explainability/ExecutiveStoryPanel";
 import { TrendIndicator } from "../components/zone/TrendIndicator";
+import { useReplay } from "../context/ReplayContext";
 import { useCurrentRisk } from "../hooks/useCurrentRisk";
 import { usePermits } from "../hooks/usePermits";
 import { useZoneCounterfactuals } from "../hooks/useZoneCounterfactuals";
@@ -55,14 +58,57 @@ function useAllZoneHistories(zoneIds: string[]) {
  * is already on. Nothing here is a new risk computation - every
  * number is a count, average, or comparison over values the backend
  * already returned.
+ *
+ * M23 Part 2/6 - dual-mode like `DigitalTwinPage`/`MissionControlPage`:
+ * when a Time Machine replay is active, every risk-derived card reads
+ * that replay's cursor (`assessmentAt`) and its persisted zone history
+ * up to the cursor (`zoneTimeline`, filtered) instead of live polling,
+ * so dragging the Time Slider keeps this page synchronized. Work
+ * Authorization counts have no historical endpoint to replay from
+ * (permits carry no timestamped history the way risk assessments do),
+ * so that one section stays live and is labeled as such during replay
+ * rather than silently showing a stale or fabricated number.
  */
 export function ExecutiveOverviewPage() {
-  const { data, isLoading, error } = useCurrentRisk();
-  const { data: zones } = useZones();
-  const zoneAssessments = data ?? [];
-  const zoneIds = useMemo(() => (data ?? []).map((zone) => zone.zone_id), [data]);
+  const replay = useReplay();
+  const isReplayMode = replay.target !== null;
 
-  const histories = useAllZoneHistories(zoneIds);
+  const live = useCurrentRisk();
+  const { data: zones } = useZones();
+
+  const liveZoneIds = useMemo(() => (live.data ?? []).map((zone) => zone.zone_id), [live.data]);
+  const zoneIds = isReplayMode ? replay.zoneIds : liveZoneIds;
+
+  const entries: { zoneId: string; assessment: RiskAssessment }[] = isReplayMode
+    ? zoneIds
+        .map((zoneId) => ({ zoneId, assessment: replay.assessmentAt(zoneId) }))
+        .filter((entry): entry is { zoneId: string; assessment: RiskAssessment } => entry.assessment !== null)
+    : (live.data ?? []).map((assessment) => ({ zoneId: assessment.zone_id, assessment }));
+  const zoneAssessments = entries.map((entry) => entry.assessment);
+
+  const isLoading = isReplayMode ? replay.isLoading : live.isLoading;
+  const error = isReplayMode ? replay.error : live.error;
+
+  const liveHistories = useAllZoneHistories(isReplayMode ? [] : zoneIds);
+  /** Same "newest-first" ordering `getRiskHistory` already returns
+   * (index 0 = latest, index 1 = previous) - `zoneTimeline` is
+   * ascending, so the replay branch reverses after filtering to the
+   * cursor to match, rather than every downstream consumer having to
+   * know which mode it's in. */
+  const historyItems: RiskAssessment[][] = zoneIds.map((zoneId, index) => {
+    if (isReplayMode) {
+      const cursorTimestamp = replay.currentTimestamp;
+      return cursorTimestamp === null
+        ? []
+        : replay
+            .zoneTimeline(zoneId)
+            .filter((assessment) => assessment.timestamp <= cursorTimestamp)
+            .slice()
+            .reverse();
+    }
+    return liveHistories[index]?.data?.items ?? [];
+  });
+
   const nonNormalZoneIds = zoneAssessments
     .filter((zone) => zone.tier !== "normal")
     .map((zone) => zone.zone_id);
@@ -84,7 +130,7 @@ export function ExecutiveOverviewPage() {
   }));
   const topZone = highestRiskZone(zoneEntries);
   const topZoneIndex = topZone ? zoneIds.indexOf(topZone.zoneId) : -1;
-  const topZoneHistory = topZoneIndex >= 0 ? (histories[topZoneIndex]?.data?.items ?? []) : [];
+  const topZoneHistory = topZoneIndex >= 0 ? (historyItems[topZoneIndex] ?? []) : [];
   const topZoneSparkline = [...topZoneHistory].reverse().map((item) => item.compound_risk_score);
   const topZonePrevious = topZoneHistory[1]?.compound_risk_score;
 
@@ -101,7 +147,7 @@ export function ExecutiveOverviewPage() {
 
   const avgScore = averageCompoundScore(zoneAssessments);
   const avgPreviousScore = averageCompoundScore(
-    zoneAssessments.map((assessment, index) => histories[index]?.data?.items?.[1] ?? assessment),
+    zoneAssessments.map((assessment, index) => historyItems[index]?.[1] ?? assessment),
   );
 
   const counterfactualMisses = zoneAssessments.filter((assessment, index) => {
@@ -109,7 +155,7 @@ export function ExecutiveOverviewPage() {
     return comparison && assessment.tier !== "normal" && !comparison.counterfactual.alert;
   }).length;
 
-  const allHistoryItems = zoneIds.flatMap((_zoneId, index) => histories[index]?.data?.items ?? []);
+  const allHistoryItems = historyItems.flat();
   const todaysIncidents = countTodaysIncidents(allHistoryItems, new Date());
 
   const openRecommendations = zoneAssessments.reduce((sum, assessment) => {
@@ -142,11 +188,19 @@ export function ExecutiveOverviewPage() {
   return (
     <section>
       <h1>Executive Overview</h1>
+
+      {isReplayMode && (
+        <p className="digital-twin-replay-banner">
+          Showing a Time Machine replay tick, not live data.{" "}
+          <Link to="/time-machine">Open Time Machine controls &rarr;</Link>
+        </p>
+      )}
+
       <QueryResult
         isLoading={isLoading}
         error={error}
         isEmpty={zoneAssessments.length === 0}
-        emptyLabel="No risk assessments have been recorded yet."
+        emptyLabel="No safety assessments have been recorded yet."
       >
         {/* Primary row - the three facts an executive needs first:
             is the plant safe, is it ready to operate, and what's the
@@ -186,12 +240,14 @@ export function ExecutiveOverviewPage() {
           </div>
         </div>
 
+        {isReplayMode && <ExecutiveStoryPanel zoneIds={zoneIds} />}
+
         <h2 className="section-heading">Supporting Metrics</h2>
         <div className="kpi-grid">
           <div className="card kpi-card">
-            <h3>Active Critical Permits</h3>
+            <h3>Active Critical Work Authorizations</h3>
             <p className="kpi-value">{activeCriticalPermits}</p>
-            <p className="kpi-sub">Active permits in zones currently at CRITICAL</p>
+            <p className="kpi-sub">Active work authorizations in zones currently at CRITICAL</p>
           </div>
 
           <div className="card kpi-card">
@@ -201,7 +257,7 @@ export function ExecutiveOverviewPage() {
           </div>
 
           <div className="card kpi-card">
-            <h3>Average Compound Score</h3>
+            <h3>Average Plant Risk</h3>
             <p className="kpi-value">
               {avgScore.toFixed(1)} <TrendIndicator current={avgScore} previous={avgPreviousScore} />
             </p>
@@ -227,7 +283,13 @@ export function ExecutiveOverviewPage() {
           </div>
         </div>
 
-        <h2 className="section-heading">Permits</h2>
+        <h2 className="section-heading">Work Authorizations</h2>
+        {isReplayMode && (
+          <p className="kpi-sub">
+            Always current, not replayed - work authorizations have no persisted history the way
+            risk assessments do.
+          </p>
+        )}
         <div className="card executive-section-card">
           <div className="card-grid">
             <div className="card kpi-card">
@@ -244,7 +306,7 @@ export function ExecutiveOverviewPage() {
             </div>
           </div>
           <p>
-            <Link to="/permits">View all permits &rarr;</Link>
+            <Link to="/permits">View all work authorizations &rarr;</Link>
           </p>
         </div>
 

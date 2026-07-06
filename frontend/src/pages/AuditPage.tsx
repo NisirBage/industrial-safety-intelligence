@@ -19,7 +19,7 @@ export function AuditPage() {
   const [cursorStack, setCursorStack] = useState<(string | undefined)[]>([undefined]);
   const before = cursorStack[cursorStack.length - 1];
 
-  const { data, isLoading, error } = useAuditLog({
+  const { data, isLoading, error, refetch } = useAuditLog({
     event_type: eventType,
     before,
     limit: PAGE_SIZE,
@@ -31,6 +31,10 @@ export function AuditPage() {
   return (
     <section>
       <h1>Audit Log</h1>
+      <p className="page-intro">
+        Every risk-computed, permit-flagged, alert, and action-confirmed event, in one
+        chronological timeline.
+      </p>
       <div className="filters">
         <label>
           Event type:{" "}
@@ -55,7 +59,9 @@ export function AuditPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={items.length === 0}
-        emptyLabel="No audit log entries yet - the hash-chained writer is deferred; see docs/frontend/known-limitations.md."
+        emptyLabel="No audit log entries yet."
+        emptyHint="The hash-chained writer is deferred, a disclosed limitation - see docs/frontend/known-limitations.md."
+        onRetry={() => refetch()}
       >
         <AuditTimeline entries={items} zones={zones} />
         <div className="pagination-controls">

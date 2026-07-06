@@ -9,6 +9,7 @@ import { RecommendationList } from "../components/explainability/RecommendationL
 import { RulesFiredList } from "../components/explainability/RulesFiredList";
 import { QueryResult } from "../components/common/QueryResult";
 import { TierBadge } from "../components/common/TierBadge";
+import { useReplay } from "../context/ReplayContext";
 import { useZones } from "../hooks/useZones";
 import { formatTimestamp, zoneLabel } from "../lib/format";
 import {
@@ -61,7 +62,7 @@ function JournalEntryRow({
           {justification ? (
             <>
               <p>Interaction bonus applied: {justification.interactionBonusApplied.toFixed(2)}</p>
-              <h4>Agent Contributions</h4>
+              <h4>Decision Contributors</h4>
               <AgentContributionChart contributions={justification.agentContributions} />
               <h4>Rules Fired</h4>
               <RulesFiredList rules={justification.rulesFired} />
@@ -86,28 +87,52 @@ function JournalEntryRow({
  * zone (`GET /risk/history/{zoneId}` for each zone in `GET /zones`).
  * Every field an entry expands to show comes straight from that row's
  * own `justification` column; nothing here recomputes anything.
+ *
+ * M23 Part 2 - dual-mode like the other replay-aware pages: when a
+ * Time Machine replay is active, the journal shows only that replay's
+ * own zones and only the entries up to the replay cursor (via
+ * `ReplayContext.zoneTimeline`), so it grows in step as you scrub the
+ * Time Slider instead of showing the whole system's unrelated history.
+ * Outside a replay it's unchanged - every zone's full persisted
+ * history via live queries, same as before.
  */
 export function DecisionJournalPage() {
+  const replay = useReplay();
+  const isReplayMode = replay.target !== null;
+
   const { data: zones, isLoading: zonesLoading, error: zonesError } = useZones();
-  const zoneIds = useMemo(() => (zones ?? []).map((zone) => zone.zone_id), [zones]);
-  const histories = useAllZoneHistories(zoneIds);
+  const liveZoneIds = useMemo(() => (zones ?? []).map((zone) => zone.zone_id), [zones]);
+  const zoneIds = isReplayMode ? replay.zoneIds : liveZoneIds;
+  const histories = useAllZoneHistories(isReplayMode ? [] : zoneIds);
 
   const [tierFilter, setTierFilter] = useState<Tier | "">("");
   const [zoneFilter, setZoneFilter] = useState("");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const isLoadingHistories = histories.some((query) => query.isLoading);
-  const historiesError = histories.find((query) => query.error)?.error;
+  const isLoadingHistories = isReplayMode
+    ? replay.isLoading
+    : zonesLoading || histories.some((query) => query.isLoading);
+  const historiesError = isReplayMode ? replay.error : histories.find((query) => query.error)?.error;
 
-  const allEntries: JournalEntry[] = useMemo(
-    () =>
-      zoneIds.flatMap((zoneId, index) => {
-        const items = histories[index]?.data?.items ?? [];
-        return items.map((assessment) => ({ zoneId, assessment }));
-      }),
-    [zoneIds, histories],
-  );
+  let allEntries: JournalEntry[];
+  if (isReplayMode) {
+    const cursorTimestamp = replay.currentTimestamp;
+    allEntries =
+      cursorTimestamp === null
+        ? []
+        : zoneIds.flatMap((zoneId) =>
+            replay
+              .zoneTimeline(zoneId)
+              .filter((assessment) => assessment.timestamp <= cursorTimestamp)
+              .map((assessment) => ({ zoneId, assessment })),
+          );
+  } else {
+    allEntries = zoneIds.flatMap((zoneId, index) => {
+      const items = histories[index]?.data?.items ?? [];
+      return items.map((assessment) => ({ zoneId, assessment }));
+    });
+  }
 
   const filtered = filterJournalEntries(sortJournalEntriesByTimestampDesc(allEntries), zones, {
     tier: tierFilter || undefined,
@@ -122,6 +147,14 @@ export function DecisionJournalPage() {
         Every persisted assessment, across every zone, in one searchable timeline - expand an
         entry for the full rules-fired/agent-contribution/recommendation breakdown.
       </p>
+
+      {isReplayMode && (
+        <p className="digital-twin-replay-banner">
+          Showing this Time Machine replay's decisions up to the current cursor, not the whole
+          system's history. <Link to="/time-machine">Open Time Machine controls &rarr;</Link>
+        </p>
+      )}
+
       <div className="filters">
         <label>
           Zone:{" "}
@@ -135,12 +168,12 @@ export function DecisionJournalPage() {
           </select>
         </label>
         <label>
-          Tier:{" "}
+          Operational Status:{" "}
           <select
             value={tierFilter}
             onChange={(event) => setTierFilter(event.target.value as Tier | "")}
           >
-            <option value="">All tiers</option>
+            <option value="">All statuses</option>
             {TIER_OPTIONS.map((tier) => (
               <option key={tier} value={tier}>
                 {tier}
@@ -163,9 +196,22 @@ export function DecisionJournalPage() {
         isLoading={zonesLoading || isLoadingHistories}
         error={zonesError || historiesError}
         isEmpty={filtered.length === 0}
-        emptyLabel="No assessments match these filters."
+        emptyLabel={
+          allEntries.length === 0
+            ? "No assessments have been recorded yet."
+            : "No assessments match these filters."
+        }
+        emptyHint={
+          allEntries.length === 0
+            ? "Run a scenario to populate the journal."
+            : "Try clearing the zone, status, or search filters above."
+        }
+        emptyAction={
+          allEntries.length === 0 && !isReplayMode ? { label: "Go to Scenario Library", to: "/scenarios" } : undefined
+        }
+        onRetry={isReplayMode ? undefined : () => histories.forEach((query) => query.refetch())}
       >
-        <p>{filtered.length} entries</p>
+        <p className="kpi-sub">{filtered.length} entries</p>
         <div className="journal-list">
           {filtered.map((entry) => (
             <JournalEntryRow

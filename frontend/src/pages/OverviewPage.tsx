@@ -71,7 +71,9 @@ export function OverviewPage() {
         <div className="hero-launch-cards">
           <Link to="/digital-twin" className="hero-launch-card">
             <span className="hero-launch-card-title">Live Digital Twin</span>
-            <span className="hero-launch-card-sub">See every zone, worker, and permit in real time</span>
+            <span className="hero-launch-card-sub">
+              See every zone, worker, and work authorization in real time
+            </span>
           </Link>
           <Link to="/operations" className="hero-launch-card">
             <span className="hero-launch-card-title">Operations Center</span>
@@ -89,7 +91,7 @@ export function OverviewPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={zones.length === 0}
-        emptyLabel="No risk assessments have been recorded yet."
+        emptyLabel="No safety assessments have been recorded yet."
       >
         <div className="card" style={{ marginBottom: "1rem" }}>
           <p>
@@ -114,7 +116,7 @@ export function OverviewPage() {
               <p>
                 <TierBadge tier={zone.tier} />
               </p>
-              <p>Compound risk: {zone.compound_risk_score.toFixed(1)}</p>
+              <p>Overall plant risk: {zone.compound_risk_score.toFixed(1)}</p>
               <p>Confidence: {(zone.confidence * 100).toFixed(0)}%</p>
               <p>{formatTimestamp(zone.timestamp)}</p>
             </Link>

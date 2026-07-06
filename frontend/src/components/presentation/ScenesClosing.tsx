@@ -87,7 +87,7 @@ export function Scene8Counterfactual({
 
   return (
     <div className="scene scene-counterfactual">
-      <h2 className="scene-heading">Counterfactual</h2>
+      <h2 className="scene-heading">Alternative Decision</h2>
       <div className="scene-counterfactual-grid">
         <div className="card">
           <h3>Current (compound engine vs naive baseline)</h3>

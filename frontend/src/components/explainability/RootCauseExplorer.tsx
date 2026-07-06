@@ -76,7 +76,7 @@ export function RootCauseExplorer({
 
       {comparisonText && (
         <>
-          <h4>Counterfactual Comparison</h4>
+          <h4>Alternative Decision Comparison</h4>
           <p>{comparisonText}</p>
         </>
       )}
@@ -84,7 +84,7 @@ export function RootCauseExplorer({
       <h4>Affected</h4>
       <ul className="root-cause-affected-list">
         <li>Workers in zone: {workerCount ?? "unknown"}</li>
-        <li>Active permit: {hasActivePermit ? "Yes" : "No"}</li>
+        <li>Active work authorization: {hasActivePermit ? "Yes" : "No"}</li>
         <li>Equipment risk: {equipmentRisk !== undefined ? equipmentRisk.toFixed(1) : "n/a"}</li>
       </ul>
     </div>

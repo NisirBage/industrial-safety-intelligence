@@ -76,7 +76,8 @@ export function DigitalTwinPage() {
       <h1>Digital Twin</h1>
       <p className="page-intro">
         The plant as one interactive site plan - zones, workers, equipment, gas sensors, and
-        permits, colored by the same compound risk the rest of this platform computes. Click a
+        work authorizations, colored by the same overall plant risk the rest of this platform
+        computes. Click a
         zone to inspect it.
       </p>
 
@@ -94,7 +95,7 @@ export function DigitalTwinPage() {
         emptyLabel={
           isReplayMode
             ? "This replay has no data at the current tick."
-            : "No risk assessments have been recorded yet."
+            : "No safety assessments have been recorded yet."
         }
       >
         <div className="digital-twin-layout">

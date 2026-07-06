@@ -137,9 +137,11 @@ export function ZoneInspectorDrawer({
       </section>
 
       <section className="zone-inspector-section">
-        <h4>Permits {permits && `(${permits.count})`}</h4>
+        <h4>Work Authorizations {permits && `(${permits.count})`}</h4>
         {permitsLoading && <p>Loading…</p>}
-        {permits && permits.items.length === 0 && <p>No permits recorded in this zone.</p>}
+        {permits && permits.items.length === 0 && (
+          <p>No work authorizations recorded in this zone.</p>
+        )}
         {permits && permits.items.length > 0 && (
           <ul>
             {permits.items.map((permit) => (

@@ -266,7 +266,7 @@ export function ScenarioBuilderPage() {
             <p style={{ fontSize: "1.5rem" }}>{summary.sensorEventCount}</p>
           </div>
           <div className="card">
-            <p>Permit events</p>
+            <p>Work authorization events</p>
             <p style={{ fontSize: "1.5rem" }}>{summary.permitEventCount}</p>
           </div>
           <div className="card">
@@ -288,7 +288,7 @@ export function ScenarioBuilderPage() {
         <ol>
           {sequence.map((step) => (
             <li key={`${step.kind}-${step.name}`}>
-              t+{step.simTime}min: {step.kind === "sensor" ? "Sensor event" : "Permit"} &quot;
+              t+{step.simTime}min: {step.kind === "sensor" ? "Sensor event" : "Work Authorization"} &quot;
               {step.name}&quot; in {zoneLabel(step.zoneId, zones)} (
               {step.durationMinutes} min)
             </li>
@@ -546,7 +546,7 @@ function PermitEventForm({
 
   return (
     <div className="card">
-      <h2>Add Permit Event</h2>
+      <h2>Add Work Authorization Event</h2>
       <label>
         Name: <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
       </label>
@@ -562,7 +562,7 @@ function PermitEventForm({
         </select>
       </label>
       <label>
-        Permit type:{" "}
+        Work authorization type:{" "}
         <select value={permitType} onChange={(e) => setPermitType(e.target.value)}>
           {permitTypes.map((pt) => (
             <option key={pt} value={pt}>
@@ -605,7 +605,7 @@ function PermitEventForm({
             setName("");
           }}
         >
-          Add Permit Event
+          Add Work Authorization Event
         </button>
       </p>
     </div>

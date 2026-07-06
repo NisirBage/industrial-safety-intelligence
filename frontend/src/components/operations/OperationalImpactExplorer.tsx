@@ -59,7 +59,7 @@ export function OperationalImpactExplorer({
                 )}
               </p>
             ) : (
-              <p>Targets the current tier decision, not a single agent's contribution.</p>
+              <p>Targets the current operational status decision, not a single decision contributor.</p>
             )}
 
             <p className="impact-explorer-evidence">

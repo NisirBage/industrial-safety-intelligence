@@ -168,7 +168,7 @@ function PermitIcon({ x, y, permitType }: { x: number; y: number; permitType: st
   if (glyph === "hot_work") {
     return (
       <g className={className} transform={`translate(${x}, ${y})`}>
-        <title>Hot Work permit active</title>
+        <title>Hot Work authorization active</title>
         <path d="M 0 -11 C 4 -6 4 -2 1 0 C 3 -1 4 2 0 5 C -4 2 -3 -1 -1 0 C -4 -2 -3 -7 0 -11 Z" />
       </g>
     );
@@ -176,7 +176,7 @@ function PermitIcon({ x, y, permitType }: { x: number; y: number; permitType: st
   if (glyph === "confined_space") {
     return (
       <g className={className} transform={`translate(${x}, ${y})`}>
-        <title>Confined Space permit active</title>
+        <title>Confined Space authorization active</title>
         <ellipse cx={0} cy={-3} rx={7} ry={3} />
         <path d="M -7 -3 L -4 6 L 4 6 L 7 -3" />
       </g>
@@ -185,7 +185,7 @@ function PermitIcon({ x, y, permitType }: { x: number; y: number; permitType: st
   if (glyph === "isolation") {
     return (
       <g className={className} transform={`translate(${x}, ${y})`}>
-        <title>Isolation (Electrical) permit active</title>
+        <title>Isolation (Electrical) authorization active</title>
         <path d="M 1 -11 L -6 1 L -1 1 L -3 9 L 6 -3 L 1 -3 Z" />
       </g>
     );
@@ -193,7 +193,7 @@ function PermitIcon({ x, y, permitType }: { x: number; y: number; permitType: st
   if (glyph === "line_break") {
     return (
       <g className={className} transform={`translate(${x}, ${y})`}>
-        <title>Line Break permit active</title>
+        <title>Line Break authorization active</title>
         <line x1={-8} y1={0} x2={-2} y2={0} />
         <line x1={2} y1={0} x2={8} y2={0} />
         <circle cx={-2} cy={0} r={1.6} />
@@ -203,7 +203,7 @@ function PermitIcon({ x, y, permitType }: { x: number; y: number; permitType: st
   }
   return (
     <g className={className} transform={`translate(${x}, ${y})`}>
-      <title>{formatPermitType(permitType)} permit active</title>
+      <title>{formatPermitType(permitType)} authorization active</title>
       <rect x={-7} y={-9} width={14} height={18} rx={2} />
       <rect x={-3} y={-11} width={6} height={4} rx={1} />
       <line x1={-4} y1={-2} x2={4} y2={-2} />
@@ -273,7 +273,7 @@ export function PlantMapLegend() {
             <circle cx={0} cy={0} r={5} />
           </g>
         </svg>
-        Active permit (shape = type)
+        Active work authorization (shape = type)
       </div>
       <span
         className="plant-map-legend-roadmap"
@@ -470,7 +470,9 @@ export function PlantMap({
             <span>{formatTimestamp(hovered.timestamp)}</span>
             {hovered.workerCount !== undefined && <span>Workers: {hovered.workerCount}</span>}
             {(hovered.activePermitTypes ?? []).map((permitType, index) => (
-              <span key={`${permitType}-${index}`}>Active permit: {formatPermitType(permitType)}</span>
+              <span key={`${permitType}-${index}`}>
+                Active work authorization: {formatPermitType(permitType)}
+              </span>
             ))}
             {hovered.gasType !== undefined && hovered.gasRisk !== undefined && (
               <span>

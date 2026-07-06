@@ -40,7 +40,7 @@ export function Scene1Title({
           <span className="scene-stat-value">
             <AnimatedCounter value={activePermitCount} durationMs={800} />
           </span>
-          <span className="scene-stat-label">Active permits</span>
+          <span className="scene-stat-label">Active work authorizations</span>
         </div>
       </div>
     </div>

@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PresentationHud } from "../components/presentation/PresentationHud";
 import { Scene1Title, Scene2DigitalTwin, Scene3Incident } from "../components/presentation/ScenesIntro";
-import { Scene4Pipeline, Scene5DecisionGraph, Scene6Operations } from "../components/presentation/ScenesEngine";
+import { Scene4MultiAgentReasoning } from "../components/presentation/ScenesEngine";
+import { Scene7Executive, Scene8Counterfactual, Scene10Closing } from "../components/presentation/ScenesClosing";
 import {
-  Scene7Executive,
-  Scene8Counterfactual,
-  Scene9Replay,
-  Scene10Closing,
-} from "../components/presentation/ScenesClosing";
+  Scene7MissionControl,
+  Scene8FinalRecommendation,
+  Scene9BusinessImpact,
+} from "../components/presentation/ScenesMissionControl";
 import { TalkingPointsPanel } from "../components/presentation/TalkingPointsPanel";
 import { DemoReadinessPanel } from "../components/presentation/DemoReadinessPanel";
 import type { PlantMapZone } from "../components/plant/PlantMap";
@@ -16,7 +16,7 @@ import { useReplay } from "../context/ReplayContext";
 import { usePresentationMode } from "../context/PresentationModeContext";
 import { useCurrentRisk } from "../hooks/useCurrentRisk";
 import { usePermits } from "../hooks/usePermits";
-import { useAllZoneSensors, useZoneEquipment } from "../hooks/useScenarioBuilder";
+import { useAllZoneSensors } from "../hooks/useScenarioBuilder";
 import { useScenarios } from "../hooks/useScenarios";
 import { useZoneCounterfactuals } from "../hooks/useZoneCounterfactuals";
 import { useZoneWorkerCounts } from "../hooks/useZoneWorkerCounts";
@@ -40,10 +40,24 @@ import { deriveRecommendations } from "../lib/recommendations";
 import { worstTier } from "../lib/tier";
 
 const TICK_MS = 250;
+/** mm:ss for the speaker timer - never a business metric, purely a
+ * display format over this page's own elapsed/remaining milliseconds. */
+function formatClock(ms: number): string {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
 /** Scene keys whose entire point is to hold on the replay's single
  * most dramatic real tick - the peak compound score - rather than
  * the first moment of escalation Scene 3 anchors on. */
-const PEAK_TICK_SCENES = new Set(["pipeline", "decision-graph", "operations", "executive", "counterfactual"]);
+const PEAK_TICK_SCENES = new Set([
+  "multi-agent-reasoning",
+  "counterfactual",
+  "executive-dashboard",
+  "mission-control",
+  "final-recommendation",
+]);
 
 /**
  * Part 1/2 (Presentation Mode) - a guided, auto-advancing tour of the
@@ -69,6 +83,7 @@ export function PresentationModePage() {
   const [started, setStarted] = useState(false);
   const [hudVisible, setHudVisible] = useState(false);
   const [judgeMode, setJudgeMode] = useState(false);
+  const [notesVisible, setNotesVisible] = useState(false);
   const [elapsedInScene, setElapsedInScene] = useState(0);
   const elapsedRef = useRef(0);
 
@@ -108,26 +123,57 @@ export function PresentationModePage() {
     ? deriveRecommendations(focusAssessment.tier, focusJustification)
     : [];
   const focusActionQueue = buildActionQueue(focusRecommendations, focusJustification);
-  const focusWorkerCounts = useZoneWorkerCounts(focusZoneId ? [focusZoneId] : []);
-  const { data: focusEquipment } = useZoneEquipment(focusZoneId ?? undefined);
-  const focusActivePermitTypes = focusZoneId
-    ? activePermitTypesForZone(activePermits?.items ?? [], focusZoneId)
-    : [];
   const focusCounterfactuals = useZoneCounterfactuals(
     focusZoneId && focusAssessment ? [{ zoneId: focusZoneId, timestamp: focusAssessment.timestamp }] : [],
   );
   const focusCounterfactual = focusCounterfactuals[0]?.data;
-  const focusTimelineEntries = replay.bookmarks
-    .filter((b) => b.zone_id === focusZoneId)
-    .map((b) => ({ timestamp: b.timestamp, label: b.label, kind: b.kind }));
 
-  // --- Plant-wide executive snapshot at the replay cursor (Scene 7) ---
+  // --- Plant-wide executive snapshot at the replay cursor (Executive Dashboard scene) ---
   const cursorAssessments = replay.zoneIds
     .map((zoneId) => replay.assessmentAt(zoneId))
     .filter((a): a is NonNullable<typeof a> => a !== null);
   const avgScore = averageCompoundScore(cursorAssessments);
   const readiness = plantReadiness(cursorAssessments);
   const normalPercent = percentZonesNormal(cursorAssessments);
+
+  // --- Mission Control scene: the same replay cursor, shaped as PlantMapZone[] ---
+  const cursorMapZones: PlantMapZone[] = replay.zoneIds
+    .map((zoneId) => {
+      const assessment = replay.assessmentAt(zoneId);
+      if (!assessment) {
+        return null;
+      }
+      const justification = parseJustification(assessment.justification);
+      const zone: PlantMapZone = {
+        zoneId,
+        name: zoneLabel(zoneId, zones),
+        tier: assessment.tier,
+        compoundRiskScore: assessment.compound_risk_score,
+        confidence: assessment.confidence,
+        timestamp: assessment.timestamp,
+        equipmentRisk: justification?.agentContributions.equipment_status?.risk,
+        gasRisk: justification?.agentContributions.gas_risk?.risk,
+      };
+      return zone;
+    })
+    .filter((zone): zone is PlantMapZone => zone !== null);
+
+  // --- Business Impact scene: real durations/checks, never fabricated ---
+  const escalationTimestamp = focusTimeline[findFirstEscalationIndex(focusTimeline)]?.timestamp;
+  const peakTimestamp = focusTimeline[findPeakIndex(focusTimeline)]?.timestamp;
+  const leadTimeMinutes =
+    escalationTimestamp && peakTimestamp
+      ? (new Date(peakTimestamp).getTime() - new Date(escalationTimestamp).getTime()) / 60000
+      : null;
+  const missedByLegacyBaseline =
+    focusCounterfactual && focusAssessment
+      ? focusAssessment.tier !== "normal" && !focusCounterfactual.counterfactual.alert
+      : null;
+  const businessValueBullets = [
+    SCENE_TALKING_POINTS["multi-agent-reasoning"].businessValue,
+    SCENE_TALKING_POINTS.counterfactual.businessValue,
+    SCENE_TALKING_POINTS["mission-control"].businessValue,
+  ];
 
   // --- Scene timer: auto-advance ---
   useEffect(() => {
@@ -167,15 +213,12 @@ export function PresentationModePage() {
     if (!started || replay.target === null) {
       return;
     }
-    if (scene.key === "incident" && focusTimeline.length > 0) {
+    if (scene.key === "incident-begins" && focusTimeline.length > 0) {
       replay.jumpToTimestamp(focusTimeline[findFirstEscalationIndex(focusTimeline)].timestamp);
     } else if (PEAK_TICK_SCENES.has(scene.key) && focusTimeline.length > 0) {
       replay.jumpToTimestamp(focusTimeline[findPeakIndex(focusTimeline)].timestamp);
-    } else if (scene.key === "replay") {
-      replay.reset();
-      replay.play();
     }
-    if (scene.key !== "replay" && replay.playing) {
+    if (replay.playing) {
       replay.pause();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,6 +234,33 @@ export function PresentationModePage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  // --- M20 Part 3 (Guided Presentation) - keyboard navigation while the
+  // tour is running: Left/Right step scenes, Space toggles auto-play,
+  // Esc exits back to the launcher. ---
+  useEffect(() => {
+    if (!started) {
+      return;
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setSceneIndex((i) => Math.min(PRESENTATION_SCENES.length - 1, i + 1));
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setSceneIndex((i) => Math.max(0, i - 1));
+      } else if (event.key === " ") {
+        event.preventDefault();
+        setPlaying((v) => !v);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        setPlaying(false);
+        setStarted(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [started]);
 
   function handleStart() {
     if (!started && scenarios && scenarios.length > 0 && replay.target === null) {
@@ -234,10 +304,10 @@ export function PresentationModePage() {
       {!started ? (
         <div className="card presentation-mode-launcher">
           <p>
-            A guided, auto-advancing tour of this platform - Digital Twin, a real replayed incident, the
-            deterministic pipeline, the Decision Graph, Operations Center, the Executive Dashboard, a
-            Counterfactual comparison, and Time Machine replay - in about 90 seconds. No manual clicking
-            required.
+            A guided, 10-slide tour of this platform - Introduction, Plant Overview, Incident Begins,
+            Multi-Agent Reasoning, Counterfactual, Executive Dashboard, Mission Control, Final
+            Recommendation, Business Impact, and Closing - in about 90 seconds. No manual clicking
+            required. Once started, use Left/Right to step, Space to play/pause, and Esc to exit.
           </p>
           <DemoReadinessPanel scenarios={scenarios} currentRisk={currentRisk} />
           <button type="button" className="presentation-mode-start-button" onClick={handleStart}>
@@ -276,6 +346,11 @@ export function PresentationModePage() {
             >
               {judgeMode ? "Exit Judge Mode" : "Judge Mode"}
             </button>
+            {!judgeMode && (
+              <button type="button" onClick={() => setNotesVisible((v) => !v)}>
+                {notesVisible ? "Hide Notes" : "Notes"}
+              </button>
+            )}
           </div>
 
           {judgeMode && (
@@ -294,35 +369,29 @@ export function PresentationModePage() {
             <div className="presentation-mode-progress-fill" style={{ width: `${progressPercent}%` }} />
           </div>
           <p className="presentation-mode-progress-label">
-            Scene {sceneIndex + 1} of {PRESENTATION_SCENES.length} &middot; {scene.title} &middot; Est.
-            remaining: {Math.ceil(remainingMs / 1000)}s
+            Slide {sceneIndex + 1} of {PRESENTATION_SCENES.length} &middot; {scene.title}
+          </p>
+          <p className="presentation-mode-speaker-timer">
+            {formatClock(totalElapsed)} elapsed &middot; {formatClock(remainingMs)} remaining
           </p>
 
           <div className="presentation-mode-stage">
-            {scene.key === "title" && (
+            {scene.key === "introduction" && (
               <Scene1Title plantStatus={plantStatus} zoneCount={zoneCount} activePermitCount={activePermitCount} />
             )}
-            {scene.key === "digital-twin" && <Scene2DigitalTwin mapZones={mapZones} />}
-            {scene.key === "incident" && <Scene3Incident assessment={focusAssessment} zones={zones} />}
-            {scene.key === "pipeline" && (
-              <Scene4Pipeline assessment={focusAssessment} justification={focusJustification} />
-            )}
-            {scene.key === "decision-graph" && <Scene5DecisionGraph justification={focusJustification} />}
-            {scene.key === "operations" && focusZoneId && (
-              <Scene6Operations
-                actions={focusActionQueue}
-                zoneId={focusZoneId}
-                zones={zones}
+            {scene.key === "plant-overview" && <Scene2DigitalTwin mapZones={mapZones} />}
+            {scene.key === "incident-begins" && <Scene3Incident assessment={focusAssessment} zones={zones} />}
+            {scene.key === "multi-agent-reasoning" && (
+              <Scene4MultiAgentReasoning
                 assessment={focusAssessment}
                 justification={focusJustification}
-                counterfactual={focusCounterfactual}
-                workerCount={focusWorkerCounts[0]?.data?.worker_count}
-                activePermitTypes={focusActivePermitTypes}
-                equipment={focusEquipment}
-                timelineEntries={focusTimelineEntries}
+                zoneId={focusZoneId}
               />
             )}
-            {scene.key === "executive" && (
+            {scene.key === "counterfactual" && (
+              <Scene8Counterfactual counterfactual={focusCounterfactual} justification={focusJustification} />
+            )}
+            {scene.key === "executive-dashboard" && (
               <Scene7Executive
                 avgScore={avgScore}
                 readiness={readiness}
@@ -332,14 +401,33 @@ export function PresentationModePage() {
                 recommendations={focusRecommendations}
               />
             )}
-            {scene.key === "counterfactual" && (
-              <Scene8Counterfactual counterfactual={focusCounterfactual} justification={focusJustification} />
+            {scene.key === "mission-control" && (
+              <Scene7MissionControl
+                mapZones={cursorMapZones}
+                focusZoneId={focusZoneId}
+                zones={zones}
+                cursorAssessments={cursorAssessments}
+                justification={focusJustification}
+                topActions={focusActionQueue}
+              />
             )}
-            {scene.key === "replay" && <Scene9Replay />}
+            {scene.key === "final-recommendation" && (
+              <Scene8FinalRecommendation
+                topActions={focusActionQueue}
+                zoneName={focusZoneId ? zoneLabel(focusZoneId, zones) : "—"}
+              />
+            )}
+            {scene.key === "business-impact" && (
+              <Scene9BusinessImpact
+                leadTimeMinutes={leadTimeMinutes}
+                missedByLegacyBaseline={missedByLegacyBaseline}
+                businessValueBullets={businessValueBullets}
+              />
+            )}
             {scene.key === "closing" && <Scene10Closing />}
           </div>
 
-          {judgeMode && <TalkingPointsPanel points={SCENE_TALKING_POINTS[scene.key]} />}
+          {(judgeMode || notesVisible) && <TalkingPointsPanel points={SCENE_TALKING_POINTS[scene.key]} />}
         </>
       )}
 

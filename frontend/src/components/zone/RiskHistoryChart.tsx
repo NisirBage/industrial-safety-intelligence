@@ -47,7 +47,7 @@ export function RiskHistoryChart({ history }: { history: RiskAssessment[] }) {
           domain={[0, 100]}
           tick={{ fontSize: 12, fill: "var(--text-muted)" }}
           label={{
-            value: "Compound Risk Score",
+            value: "Overall Plant Risk",
             angle: -90,
             position: "insideLeft",
             fontSize: 12,
@@ -73,7 +73,9 @@ export function RiskHistoryChart({ history }: { history: RiskAssessment[] }) {
           }}
           labelFormatter={(label: unknown) => formatTimestamp(String(label))}
           formatter={(value: unknown) =>
-            typeof value === "number" ? [value.toFixed(2), "Compound risk"] : [String(value), "Compound risk"]
+            typeof value === "number"
+              ? [value.toFixed(2), "Overall plant risk"]
+              : [String(value), "Overall plant risk"]
           }
         />
         <Line

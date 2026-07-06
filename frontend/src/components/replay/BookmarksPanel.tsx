@@ -5,10 +5,10 @@ import { formatTimestamp, zoneLabel } from "../../lib/format";
 import { useZones } from "../../hooks/useZones";
 
 const KIND_LABELS: Record<string, string> = {
-  tier_change: "Tier change",
+  tier_change: "Operational status change",
   critical: "Reached CRITICAL",
   interaction_bonus: "Interaction bonus",
-  permit_activated: "Permit activated",
+  permit_activated: "Work authorization activated",
   highest_risk: "Highest risk",
 };
 

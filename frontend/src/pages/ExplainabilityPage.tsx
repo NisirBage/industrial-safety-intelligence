@@ -45,7 +45,7 @@ export function ExplainabilityPage() {
                 {formatTimestamp(assessment.timestamp)}
               </p>
               <p>
-                Compound risk score: {assessment.compound_risk_score.toFixed(1)}{" "}
+                Overall plant risk: {assessment.compound_risk_score.toFixed(1)}{" "}
                 <TierBadge tier={assessment.tier} /> &middot; Confidence:{" "}
                 {(assessment.confidence * 100).toFixed(0)}%
               </p>
@@ -64,7 +64,7 @@ export function ExplainabilityPage() {
                 </div>
 
                 <div className="card" style={{ marginBottom: "1rem" }}>
-                  <h3>Tier Transition</h3>
+                  <h3>Operational Status Change</h3>
                   <p className="tier-transition">
                     <TierBadge tier={justification.tierBefore} /> &rarr;{" "}
                     <TierBadge tier={justification.tierAfter} />
@@ -75,7 +75,7 @@ export function ExplainabilityPage() {
                 </div>
 
                 <div className="card" style={{ marginBottom: "1rem" }}>
-                  <h3>Agent Contributions</h3>
+                  <h3>Decision Contributors</h3>
                   <AgentContributionChart contributions={justification.agentContributions} />
                 </div>
 

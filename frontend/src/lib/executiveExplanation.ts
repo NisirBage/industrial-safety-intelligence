@@ -61,3 +61,47 @@ export function generateExecutiveExplanation(
 
   return sentences.join(" ");
 }
+
+/** Cosmetic name -> one-clause business phrase per agent, used only by
+ * `businessStoryLine` below. Never used to decide anything - purely a
+ * shorter rewording of the same agent name `agentDisplayName` already
+ * exposes, for the one-line-per-tick "story" framing (M23 Part 6)
+ * rather than the fuller technical narration above. */
+const AGENT_STORY_PHRASE: Record<string, string> = {
+  gas_risk: "Gas concentration increasing",
+  worker_exposure: "Worker entered a hazardous area",
+  equipment_status: "Equipment degradation detected",
+  permit_intelligence: "Permit conflict detected",
+};
+
+/**
+ * M23 Part 6 (Executive Story) - a single, short, business-friendly
+ * clause for one tick, in the style `demo_script.md` uses ("Gas
+ * concentration increasing.", "Shutdown recommended."). Every branch
+ * below reads only the same persisted `tierBefore`/`tierAfter` and top
+ * agent contribution `generateExecutiveExplanation` already reads -
+ * this is a shorter rewording for a different display context, not a
+ * second computation.
+ */
+export function businessStoryLine(assessment: RiskAssessment, justification: RiskJustification | null): string {
+  if (!justification) {
+    return `Assessment recorded at ${assessment.tier.toUpperCase()}.`;
+  }
+
+  if (justification.tierAfter === "critical" && justification.tierBefore !== "critical") {
+    return "Shutdown recommended.";
+  }
+  if (justification.tierAfter === "elevated" && justification.tierBefore !== "elevated") {
+    return "Escalating - increased monitoring required.";
+  }
+
+  const [topAgentName] = Object.entries(justification.agentContributions).sort(
+    (a, b) => b[1].risk - a[1].risk,
+  )[0] ?? [undefined];
+
+  if (topAgentName && AGENT_STORY_PHRASE[topAgentName]) {
+    return `${AGENT_STORY_PHRASE[topAgentName]}.`;
+  }
+
+  return `Tier holding at ${justification.tierAfter.toUpperCase()}.`;
+}

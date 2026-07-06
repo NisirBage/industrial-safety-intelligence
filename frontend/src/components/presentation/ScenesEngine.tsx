@@ -1,4 +1,5 @@
 import type { CounterfactualComparison, EquipmentInfo, RiskAssessment, Zone } from "../../api/types";
+import { DecisionEvolution } from "../explainability/DecisionEvolution";
 import { PipelineDiagram } from "../explainability/PipelineDiagram";
 import { ActionQueue } from "../operations/ActionQueue";
 import { OperationalDependencyGraph } from "../operations/OperationalDependencyGraph";
@@ -69,6 +70,66 @@ export function Scene5DecisionGraph({ justification }: { justification: RiskJust
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+/** M20 Part 3 - "Multi-Agent Reasoning" combines the earlier separate
+ * Pipeline and Decision Graph slides into one: the same
+ * `PipelineDiagram` showing all four agents feeding Fusion, directly
+ * followed by the same relative-share breakdown, so a judge sees both
+ * "how it flows" and "which factor drove it" without a slide change.
+ * Neither underlying component is duplicated - both are the exact
+ * `Scene4Pipeline`/`Scene5DecisionGraph` bodies, just composed.
+ *
+ * M23 Part 8 - also mounts `DecisionEvolution` for the replay's focus
+ * zone (when known) so this scene shows not just the peak tick's
+ * snapshot but how the four agents' contributions evolved up to it,
+ * satisfying "Presentation Mode automatically follows Decision
+ * Evolution" without a separate slide or any manual click - the tour
+ * already scrubs the shared `ReplayContext` cursor this component
+ * reads from.
+ */
+export function Scene4MultiAgentReasoning({
+  assessment,
+  justification,
+  zoneId,
+}: {
+  assessment: RiskAssessment | undefined;
+  justification: RiskJustification | null;
+  zoneId?: string | null;
+}) {
+  const shares = computeRelativeShares(justification);
+  const bonusApplied = hasInteractionBonus(justification);
+
+  return (
+    <div className="scene scene-multi-agent-reasoning">
+      <h2 className="scene-heading">Multi-Agent Reasoning</h2>
+      {assessment ? (
+        <PipelineDiagram assessment={assessment} justification={justification} />
+      ) : (
+        <p>No replay data available.</p>
+      )}
+      {shares.length > 0 && (
+        <>
+          <ul className="scene-influence-list">
+            {shares.map((share, index) => (
+              <li key={share.agentName} className={index === 0 ? "scene-influence-top" : undefined}>
+                <strong>{share.displayName}</strong> &mdash; {share.risk.toFixed(1)} risk (
+                {share.sharePercent.toFixed(0)}% of this tick&apos;s total raw contribution)
+                {index === 0 && " — largest contributor"}
+                {isIgnoredByThresholdEngine(share.agentName) && " · invisible to the naive baseline"}
+              </li>
+            ))}
+          </ul>
+          <p className="scene-interaction-bonus">
+            {bonusApplied
+              ? `Interaction bonus applied - multiple independent factors are compounding at once (rule: interaction_bonus_applied).`
+              : "No interaction bonus this tick - factors are not compounding."}
+          </p>
+        </>
+      )}
+      {zoneId && <DecisionEvolution zoneId={zoneId} />}
     </div>
   );
 }

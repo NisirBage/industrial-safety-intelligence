@@ -32,10 +32,10 @@ export interface SopReference {
  */
 export const SOP_BY_PERMIT_TYPE: Record<string, SopReference> = {
   hot_work: {
-    title: "Hot Work Permit Procedure",
+    title: "Hot Work Authorization Procedure",
     standard: "OISD-STD-105",
     section: "Section 7.2",
-    summary: "Requirements for suspending or revoking an active hot work permit when gas or exposure risk rises.",
+    summary: "Requirements for suspending or revoking an active hot work authorization when gas or exposure risk rises.",
     externalUrl: null,
   },
   confined_space: {
@@ -53,7 +53,7 @@ export const SOP_BY_PERMIT_TYPE: Record<string, SopReference> = {
     externalUrl: null,
   },
   line_break: {
-    title: "Line Break Permit Procedure",
+    title: "Line Break Work Authorization Procedure",
     standard: "OISD-STD-244",
     section: "Section 5.3",
     summary: "Depressurization and isolation confirmation requirements before and during a line break.",

@@ -184,7 +184,7 @@ export function OperationsCenterPage() {
         emptyLabel={
           isReplayMode
             ? "This replay has no data at the current tick."
-            : "No risk assessments have been recorded yet."
+            : "No safety assessments have been recorded yet."
         }
       >
         {displayAssessment && (
@@ -199,7 +199,8 @@ export function OperationsCenterPage() {
                 )}
               </p>
               <p className="operations-status-line">
-                Workers present: {displayMapZone?.workerCount ?? "Unknown"} &middot; Active permits:{" "}
+                Workers present: {displayMapZone?.workerCount ?? "Unknown"} &middot; Active work
+                authorizations:{" "}
                 {displayActivePermitTypes.length > 0
                   ? displayActivePermitTypes.map(formatPermitType).join(", ")
                   : "None"}{" "}

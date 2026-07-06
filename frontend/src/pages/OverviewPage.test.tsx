@@ -27,7 +27,7 @@ describe("OverviewPage", () => {
     renderWithProviders(<OverviewPage />);
 
     await waitFor(() =>
-      expect(screen.getByText(/no risk assessments have been recorded/i)).toBeInTheDocument(),
+      expect(screen.getByText(/no safety assessments have been recorded/i)).toBeInTheDocument(),
     );
   });
 

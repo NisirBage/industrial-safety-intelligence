@@ -7,7 +7,7 @@ describe("getSopReference", () => {
     const sop = getSopReference("permit_status_escalated", ["hot_work"]);
     expect(sop?.standard).toBe("OISD-STD-105");
     expect(sop?.section).toBe("Section 7.2");
-    expect(sop?.title).toBe("Hot Work Permit Procedure");
+    expect(sop?.title).toBe("Hot Work Authorization Procedure");
   });
 
   it("falls back to the recommendation-id table when no permit type matches", () => {

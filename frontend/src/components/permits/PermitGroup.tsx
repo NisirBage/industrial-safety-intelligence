@@ -14,19 +14,21 @@ export function PermitGroup({
   zoneId: string | undefined;
   zones?: Zone[];
 }) {
-  const { data, isLoading, error } = usePermits({ status, zone_id: zoneId });
+  const { data, isLoading, error, refetch } = usePermits({ status, zone_id: zoneId });
   const items = data?.items ?? [];
 
   return (
     <section>
-      <h2>
+      <h2 className="section-heading">
         {title} ({data?.count ?? 0})
       </h2>
       <QueryResult
         isLoading={isLoading}
         error={error}
         isEmpty={items.length === 0}
-        emptyLabel={`No ${title.toLowerCase()} permits.`}
+        emptyLabel={`No ${title.toLowerCase()} work authorizations.`}
+        emptyHint="A work authorization moves into this group automatically as Permit Intelligence re-evaluates it each tick."
+        onRetry={() => refetch()}
       >
         <div className="card-grid">
           {items.map((permit) => (
