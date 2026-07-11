@@ -3,6 +3,15 @@ import { http, HttpResponse } from "msw";
 import type {
   AuditLogEntry,
   CounterfactualComparison,
+  CrossScenarioAnalytics,
+  ForesightResult,
+  GraphEntity,
+  GraphNeighbors,
+  GraphPath,
+  GraphSearchResult,
+  GraphSubgraph,
+  HistoricalDeck,
+  IncidentMatchesResult,
   Permit,
   RiskAssessment,
   ScenarioSummary,
@@ -103,6 +112,222 @@ export const mockCounterfactual: CounterfactualComparison = {
   compound: { compound_risk_score: 72.5, confidence: 0.8, tier: "elevated" },
 };
 
+export const mockHistoricalDecks: HistoricalDeck[] = [
+  {
+    key: "demo-plant-incidents",
+    name: "Demo Plant Incidents",
+    description: "Every scenario this platform has actually simulated and replayed.",
+    incidents: [
+      {
+        scenario_key: "demo_vizag_clairton",
+        root_cause: "A hot work permit was issued while CO pressure began rising.",
+        business_impact: "Reference scenario - the platform's own golden-path regression test.",
+        operational_impact: "Concurrent permit activity and gas escalation across two zones.",
+        safety_impact: "Demonstrates the full pipeline from sensor rise through tier escalation.",
+      },
+    ],
+  },
+];
+
+export const mockHistoricalMatches: IncidentMatchesResult = {
+  zone_id: ZONE_A,
+  timestamp: "2026-07-01T08:05:00+00:00",
+  matches: [
+    {
+      scenario_key: "demo_vizag_clairton",
+      incident_name: "demo_vizag_clairton",
+      date: "2026-07-01T08:05:00+00:00",
+      zone_id: ZONE_A,
+      similarity: 0.87,
+      outcome_tier: "elevated",
+      root_cause: "A hot work permit was issued while CO pressure began rising.",
+      business_impact: "Reference scenario - the platform's own golden-path regression test.",
+      operational_impact: "Concurrent permit activity and gas escalation across two zones.",
+      safety_impact: "Demonstrates the full pipeline from sensor rise through tier escalation.",
+      matching_features: ["gas_risk", "tier_ordinal"],
+      differing_features: ["permit_risk"],
+      lessons_learned: [
+        { rule: "tier_escalated", lesson: "Escalations that hold past dwell time are real." },
+      ],
+      evidence_source: "demo_vizag_clairton @ 2026-07-01T08:05:00+00:00 (assessment a1)",
+    },
+  ],
+};
+
+export const mockHistoricalAnalytics: CrossScenarioAnalytics = {
+  total_incidents: 3,
+  total_indexed_ticks: 42,
+  most_common_causes: [
+    { rule: "tier_escalated", lesson: "Escalations that hold past dwell time are real.", incident_count: 2 },
+  ],
+  most_common_equipment_issues: [],
+  most_common_permit_conflicts: [],
+  most_common_worker_hazards: [],
+  average_resolution_minutes: 18.5,
+  most_effective_interventions: { reason: "No intervention mechanic exists in this platform yet." },
+  industry_comparisons: { reason: "Only one real deck exists - nothing to compare across industries." },
+};
+
+export const mockForesightResult: ForesightResult = {
+  zone_id: ZONE_A,
+  timestamp: "2026-07-01T08:05:00+00:00",
+  current_risk_score: 60.0,
+  current_tier: "watch",
+  window_size: 5,
+  current_window_length: 3,
+  matches: [
+    {
+      scenario_key: "demo_vizag_clairton",
+      incident_name: "Vizag-Clairton Demo Incident",
+      zone_id: ZONE_A,
+      anchor_timestamp: "2026-07-01T08:00:00+00:00",
+      similarity: 0.82,
+      window_length: 3,
+    },
+  ],
+  forecast: [
+    {
+      horizon_minutes: 15,
+      projected_risk: 74.0,
+      projected_tier: "elevated",
+      evidence: [
+        {
+          scenario_key: "demo_vizag_clairton",
+          zone_id: ZONE_A,
+          similarity: 0.82,
+          observed_risk: 74.0,
+          observed_tier: "elevated",
+          observed_timestamp: "2026-07-01T08:15:00+00:00",
+          minutes_after_anchor: 15,
+        },
+      ],
+      unavailable_reason: null,
+    },
+    {
+      horizon_minutes: 30,
+      projected_risk: null,
+      projected_tier: null,
+      evidence: [],
+      unavailable_reason: "No matched historical incident has persisted data reaching 30 minutes past the matched point.",
+    },
+    {
+      horizon_minutes: 60,
+      projected_risk: null,
+      projected_tier: null,
+      evidence: [],
+      unavailable_reason: "No matched historical incident has persisted data reaching 60 minutes past the matched point.",
+    },
+  ],
+  confidence: {
+    historical_agreement: 0.0,
+    data_completeness: 0.6,
+    trajectory_similarity: 0.82,
+    replay_coverage: 0.33,
+    overall: 0.0,
+  },
+  progression: {
+    current_stage: {
+      label: "WATCH",
+      tier: "watch",
+      supporting_matches: 1,
+      total_matches: 1,
+      evidence: "Current persisted tier for this zone - not a projection.",
+    },
+    likely_next_stage: {
+      label: "ELEVATED",
+      tier: "elevated",
+      supporting_matches: 1,
+      total_matches: 1,
+      evidence: "1 of 1 matched incident(s) support ELEVATED within 15 minutes.",
+    },
+    likely_following_stage: {
+      label: "Unavailable",
+      tier: null,
+      supporting_matches: 0,
+      total_matches: 1,
+      evidence: "No matched historical incident has data at this horizon.",
+    },
+    expected_resolution: {
+      label: "Unavailable",
+      tier: null,
+      supporting_matches: 0,
+      total_matches: 1,
+      evidence: "No matched incident returned to NORMAL within its own persisted replay window.",
+    },
+  },
+  early_warning: {
+    category: "Potential Escalation",
+    why: "1 of 1 matched incident(s) show tier rising to ELEVATED within 15 minutes.",
+    supporting_matches: 1,
+    total_matches: 1,
+  },
+  deck_contributions: [
+    { deck_key: "demo-plant-incidents", deck_name: "Demo Plant Incidents", matched_incident_count: 1 },
+  ],
+};
+
+function mockGraphZoneEntity(id: string): GraphEntity {
+  return {
+    kind: "zone",
+    id,
+    label: "Tank Farm",
+    attributes: { zone_id: id, name: "Tank Farm", plant_section: "Storage" },
+  };
+}
+
+const mockGraphSensorEntity: GraphEntity = {
+  kind: "sensor",
+  id: "sensor-1",
+  label: "CO sensor",
+  attributes: { sensor_id: "sensor-1", zone_id: ZONE_A, gas_type: "CO" },
+};
+
+function mockGraphNeighbors(id: string): GraphNeighbors {
+  return {
+    entity: mockGraphZoneEntity(id),
+    neighbors: [
+      {
+        edge: {
+          source_kind: "zone",
+          source_id: id,
+          relation: "contains",
+          target_kind: "sensor",
+          target_id: "sensor-1",
+          label: "contains Sensor",
+        },
+        entity: mockGraphSensorEntity,
+      },
+    ],
+  };
+}
+
+function mockGraphSubgraph(id: string): GraphSubgraph {
+  const neighbors = mockGraphNeighbors(id);
+  return {
+    nodes: [neighbors.entity, ...neighbors.neighbors.map((n) => n.entity)],
+    edges: neighbors.neighbors.map((n) => n.edge),
+  };
+}
+
+export const mockGraphSearchResult: GraphSearchResult = {
+  query: "tank",
+  results: [mockGraphZoneEntity(ZONE_A)],
+};
+
+export const mockGraphPath: GraphPath = {
+  found: true,
+  edges: [
+    {
+      source_kind: "recommendation",
+      source_id: "a1|tier_critical",
+      relation: "generated",
+      target_kind: "risk_assessment",
+      target_id: "a1",
+      label: "generated",
+    },
+  ],
+};
+
 export const handlers = [
   http.get("http://localhost:8000/api/v1/risk/current", () => {
     return HttpResponse.json(mockCurrentRisk);
@@ -153,5 +378,32 @@ export const handlers = [
   }),
   http.get("http://localhost:8000/api/v1/zones/:zoneId/workers/count", ({ params }) => {
     return HttpResponse.json({ zone_id: params.zoneId, worker_count: 2 });
+  }),
+  http.get("http://localhost:8000/api/v1/historical/decks", () => {
+    return HttpResponse.json(mockHistoricalDecks);
+  }),
+  http.get("http://localhost:8000/api/v1/historical/matches", () => {
+    return HttpResponse.json(mockHistoricalMatches);
+  }),
+  http.get("http://localhost:8000/api/v1/historical/analytics", () => {
+    return HttpResponse.json(mockHistoricalAnalytics);
+  }),
+  http.get("http://localhost:8000/api/v1/foresight/forecast", () => {
+    return HttpResponse.json(mockForesightResult);
+  }),
+  http.get("http://localhost:8000/api/v1/graph/entity/:kind/:id", ({ params }) => {
+    return HttpResponse.json(mockGraphZoneEntity(String(params.id)));
+  }),
+  http.get("http://localhost:8000/api/v1/graph/neighbors/:kind/:id", ({ params }) => {
+    return HttpResponse.json(mockGraphNeighbors(String(params.id)));
+  }),
+  http.get("http://localhost:8000/api/v1/graph/subgraph/:kind/:id", ({ params }) => {
+    return HttpResponse.json(mockGraphSubgraph(String(params.id)));
+  }),
+  http.get("http://localhost:8000/api/v1/graph/search", () => {
+    return HttpResponse.json(mockGraphSearchResult);
+  }),
+  http.get("http://localhost:8000/api/v1/graph/path", () => {
+    return HttpResponse.json(mockGraphPath);
   }),
 ];

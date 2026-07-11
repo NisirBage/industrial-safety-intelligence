@@ -7,6 +7,8 @@ import { PipelineDiagram } from "../components/explainability/PipelineDiagram";
 import { RecommendationList } from "../components/explainability/RecommendationList";
 import { RootCauseExplorer } from "../components/explainability/RootCauseExplorer";
 import { TechnicalView } from "../components/explainability/TechnicalView";
+import { HistoricalIntelligencePanel } from "../components/historical/HistoricalIntelligencePanel";
+import { OperationalForesightPanel } from "../components/foresight/OperationalForesightPanel";
 import { PlantMap, type PlantMapZone } from "../components/plant/PlantMap";
 import { BookmarksPanel } from "../components/replay/BookmarksPanel";
 import { ReplayController } from "../components/replay/ReplayController";
@@ -169,6 +171,23 @@ export function TimeMachinePage() {
               )}
 
               {displayZoneId && <DecisionEvolution zoneId={displayZoneId} />}
+
+              {displayZoneId && displayAssessment && (
+                <HistoricalIntelligencePanel
+                  zoneId={displayZoneId}
+                  timestamp={displayAssessment.timestamp}
+                  currentTimeline={replay.zoneTimeline(displayZoneId)}
+                />
+              )}
+
+              {displayZoneId && displayAssessment && replay.target?.scenarioKey && (
+                <OperationalForesightPanel
+                  zoneId={displayZoneId}
+                  timestamp={displayAssessment.timestamp}
+                  scenarioKey={replay.target.scenarioKey}
+                  currentTimeline={replay.zoneTimeline(displayZoneId)}
+                />
+              )}
 
               <div className="card">
                 <label className="pipeline-overlay-toggle">

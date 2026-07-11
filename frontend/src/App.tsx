@@ -81,6 +81,9 @@ const DemoLauncherPage = lazy(() =>
 const DiagnosticsPage = lazy(() =>
   import("./pages/DiagnosticsPage").then((m) => ({ default: m.DiagnosticsPage })),
 );
+const KnowledgeGraphPage = lazy(() =>
+  import("./pages/KnowledgeGraphPage").then((m) => ({ default: m.KnowledgeGraphPage })),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -127,6 +130,7 @@ function App() {
                         <Route path="/story" element={<PresentationModePage />} />
                         <Route path="/demo-launcher" element={<DemoLauncherPage />} />
                         <Route path="/diagnostics" element={<DiagnosticsPage />} />
+                        <Route path="/knowledge-graph" element={<KnowledgeGraphPage />} />
                       </Routes>
                     </Suspense>
                   </DashboardLayout>

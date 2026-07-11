@@ -255,3 +255,252 @@ export interface ReplayData {
   zone_timelines: ZoneReplayTimeline[];
   bookmarks: ReplayBookmark[];
 }
+
+/** Mirrors src/api/schemas/historical.py::HistoricalIncidentSummary (M24). */
+export interface HistoricalIncidentSummary {
+  scenario_key: string;
+  root_cause: string;
+  business_impact: string;
+  operational_impact: string;
+  safety_impact: string;
+}
+
+/** Mirrors src/api/schemas/historical.py::HistoricalDeckResponse. */
+export interface HistoricalDeck {
+  key: string;
+  name: string;
+  description: string;
+  incidents: HistoricalIncidentSummary[];
+}
+
+/** Mirrors src/api/schemas/historical.py::LessonResponse. */
+export interface HistoricalLesson {
+  rule: string;
+  lesson: string;
+}
+
+/** Mirrors src/api/schemas/historical.py::IncidentMatchResponse - one
+ * past incident similar to the current assessment. Never a
+ * recommendation of its own - context only (matching/differing
+ * features, real outcome, lessons learned, and the exact evidence
+ * this was computed from). */
+export interface IncidentMatch {
+  scenario_key: string;
+  incident_name: string;
+  date: string;
+  zone_id: string;
+  similarity: number;
+  outcome_tier: Tier;
+  root_cause: string;
+  business_impact: string;
+  operational_impact: string;
+  safety_impact: string;
+  matching_features: string[];
+  differing_features: string[];
+  lessons_learned: HistoricalLesson[];
+  evidence_source: string;
+}
+
+/** Mirrors src/api/schemas/historical.py::IncidentMatchesResponse. */
+export interface IncidentMatchesResult {
+  zone_id: string;
+  timestamp: string;
+  matches: IncidentMatch[];
+}
+
+/** Mirrors src/api/schemas/historical.py::RuleFrequencyResponse. */
+export interface RuleFrequency {
+  rule: string;
+  lesson: string;
+  incident_count: number;
+}
+
+/** Mirrors src/api/schemas/historical.py::UnavailableResponse - the
+ * honest "Status: Unavailable - Reason: ..." pattern, used where this
+ * platform has no real data to answer with rather than a fabricated
+ * value (see src/historical/analytics.py). */
+export interface HistoricalUnavailable {
+  reason: string;
+}
+
+/** Mirrors src/api/schemas/historical.py::CrossScenarioAnalyticsResponse. */
+export interface CrossScenarioAnalytics {
+  total_incidents: number;
+  total_indexed_ticks: number;
+  most_common_causes: RuleFrequency[];
+  most_common_equipment_issues: RuleFrequency[];
+  most_common_permit_conflicts: RuleFrequency[];
+  most_common_worker_hazards: RuleFrequency[];
+  average_resolution_minutes: number | null;
+  most_effective_interventions: HistoricalUnavailable;
+  industry_comparisons: HistoricalUnavailable;
+}
+
+/** Mirrors src/api/schemas/foresight.py::MatchSummaryResponse (M25). */
+export interface ForesightMatchSummary {
+  scenario_key: string;
+  incident_name: string;
+  zone_id: string;
+  anchor_timestamp: string;
+  similarity: number;
+  window_length: number;
+}
+
+/** Mirrors src/api/schemas/foresight.py::ForecastEvidenceResponse - the
+ * real historical observation every projected point must cite. */
+export interface ForecastEvidence {
+  scenario_key: string;
+  zone_id: string;
+  similarity: number;
+  observed_risk: number;
+  observed_tier: Tier;
+  observed_timestamp: string;
+  minutes_after_anchor: number;
+}
+
+/** Mirrors src/api/schemas/foresight.py::ForecastPointResponse. A
+ * `null` projected_risk/projected_tier means this horizon is honestly
+ * unavailable (see `unavailable_reason`), never interpolated. */
+export interface ForecastPoint {
+  horizon_minutes: number;
+  projected_risk: number | null;
+  projected_tier: Tier | null;
+  evidence: ForecastEvidence[];
+  unavailable_reason: string | null;
+}
+
+/** Mirrors src/api/schemas/foresight.py::ForesightConfidenceResponse -
+ * `overall` is the minimum of the four factors, never an average. */
+export interface ForesightConfidence {
+  historical_agreement: number;
+  data_completeness: number;
+  trajectory_similarity: number;
+  replay_coverage: number;
+  overall: number;
+}
+
+/** Mirrors src/api/schemas/foresight.py::ProgressionStageResponse. */
+export interface ProgressionStage {
+  label: string;
+  tier: Tier | null;
+  supporting_matches: number;
+  total_matches: number;
+  evidence: string;
+}
+
+/** Mirrors src/api/schemas/foresight.py::IncidentProgressionResponse. */
+export interface IncidentProgression {
+  current_stage: ProgressionStage;
+  likely_next_stage: ProgressionStage;
+  likely_following_stage: ProgressionStage;
+  expected_resolution: ProgressionStage;
+}
+
+/** Mirrors src/api/schemas/foresight.py::EarlyWarningSignalResponse -
+ * `category` is always one of the four the milestone specifies. */
+export interface EarlyWarningSignal {
+  category: "Potential Escalation" | "Potential Stabilization" | "Potential Recovery" | "Potential Shutdown";
+  why: string;
+  supporting_matches: number;
+  total_matches: number;
+}
+
+/** Mirrors src/api/schemas/foresight.py::DeckContributionResponse. */
+export interface DeckContribution {
+  deck_key: string;
+  deck_name: string;
+  matched_incident_count: number;
+}
+
+/** Mirrors src/api/schemas/foresight.py::ForesightResponse - the full
+ * Operational Foresight result for one zone/tick. Every field here is
+ * context/trend evidence, never a recommendation of its own - the
+ * deterministic engine's own RecommendationList remains authoritative. */
+export interface ForesightResult {
+  zone_id: string;
+  timestamp: string;
+  current_risk_score: number;
+  current_tier: Tier;
+  window_size: number;
+  current_window_length: number;
+  matches: ForesightMatchSummary[];
+  forecast: ForecastPoint[];
+  confidence: ForesightConfidence;
+  progression: IncidentProgression;
+  early_warning: EarlyWarningSignal;
+  deck_contributions: DeckContribution[];
+}
+
+/** M26 - Operational Knowledge Graph. Mirrors
+ * src/api/schemas/graph.py exactly. `kind` is one of the 15 real
+ * entity kinds (`src/knowledge_graph/entities.py::EntityKind`);
+ * `attributes` holds only values already computed elsewhere in this
+ * platform - the graph never derives a new one. */
+export type GraphEntityKind =
+  | "plant"
+  | "zone"
+  | "sensor"
+  | "sensor_reading"
+  | "worker"
+  | "equipment"
+  | "permit"
+  | "risk_assessment"
+  | "triggered_agent"
+  | "recommendation"
+  | "historical_incident"
+  | "forecast"
+  | "lesson_learned"
+  | "counterfactual"
+  | "business_impact";
+
+/** Mirrors src/api/schemas/graph.py::GraphEntityResponse. */
+export interface GraphEntity {
+  kind: GraphEntityKind;
+  id: string;
+  label: string;
+  attributes: Record<string, unknown>;
+}
+
+/** Mirrors src/api/schemas/graph.py::GraphEdgeResponse - `relation` is
+ * one of `src/knowledge_graph/relationships.py::RelationKind`'s real,
+ * documented relationship kinds (never a fabricated connection). */
+export interface GraphEdge {
+  source_kind: GraphEntityKind;
+  source_id: string;
+  relation: string;
+  target_kind: GraphEntityKind;
+  target_id: string;
+  label: string;
+}
+
+/** Mirrors src/api/schemas/graph.py::NeighborResponse. */
+export interface GraphNeighbor {
+  edge: GraphEdge;
+  entity: GraphEntity;
+}
+
+/** Mirrors src/api/schemas/graph.py::NeighborsResponse. */
+export interface GraphNeighbors {
+  entity: GraphEntity;
+  neighbors: GraphNeighbor[];
+}
+
+/** Mirrors src/api/schemas/graph.py::SubgraphResponse - a bounded,
+ * lazy-loaded neighborhood, never the whole graph. */
+export interface GraphSubgraph {
+  nodes: GraphEntity[];
+  edges: GraphEdge[];
+}
+
+/** Mirrors src/api/schemas/graph.py::SearchResponse. */
+export interface GraphSearchResult {
+  query: string;
+  results: GraphEntity[];
+}
+
+/** Mirrors src/api/schemas/graph.py::PathResponse - `found: false` is
+ * not an error, it means no path exists within the requested depth. */
+export interface GraphPath {
+  found: boolean;
+  edges: GraphEdge[];
+}

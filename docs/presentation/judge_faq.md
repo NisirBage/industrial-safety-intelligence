@@ -120,11 +120,14 @@ share), it's explicitly labeled as a normalization of real numbers
 weight.
 
 **What's the actual test coverage?**
-467 automated tests: 294 backend (`pytest`, against a live PostgreSQL
-instance) and 173 frontend (`vitest`). Backend `ruff`, `black --check`,
-and `mypy --strict` are clean; frontend `oxlint` and `tsc -b` are
-clean. 16 of the frontend tests currently fail for one disclosed,
-non-architectural reason (see Limitations below) - not silently hidden.
+Backend `ruff`, `black --check`, and `mypy --strict` are clean;
+frontend `oxlint` and `tsc -b` are clean. As of M25, 183 frontend
+`vitest` tests run, with exactly 1 pre-existing, disclosed failure
+unrelated to any product code (a stale text-count assertion in
+`OverviewPage.test.tsx`, already flagged for a follow-up fix - not
+silently hidden). The mock-server/dev-port mismatch that used to cause
+16 frontend test failures was found and fixed during M24 (see
+Limitations below for what it was).
 
 ---
 
@@ -170,9 +173,9 @@ Honest "what's next," not a wishlist:
    gas type per zone - see Limitations).
 4. **A real persistence store for `AgentCache`/`TierState`** across
    process restarts (currently in-memory).
-5. Fix the 16 known frontend test failures by aligning the mock
-   server's port with `VITE_API_BASE_URL` (see Limitations) - a test
-   fixture fix, not a product change.
+5. ~~Fix the 16 known frontend test failures by aligning the mock
+   server's port with `VITE_API_BASE_URL`~~ - done at M24 via a
+   mode-scoped `.env.test.local` (see Limitations).
 
 None of these touch the frozen engine's algorithms; all of them would
 *consume* it through the same contracts documented in
@@ -193,11 +196,17 @@ None of these touch the frozen engine's algorithms; all of them would
   ORM model's primary key.** Inert in practice (every real call site
   supplies a deterministic id explicitly) but latent: a future caller
   that omits an explicit id would silently get a random one.
-- **16 of 173 frontend `vitest` tests currently fail** because the
-  mock server (MSW) hardcodes `localhost:8000` while
-  `VITE_API_BASE_URL` resolves to the actual dev port (`:8010`) in this
-  environment - a test-fixture/environment mismatch, not a defect in
-  the code under test. All 294 backend `pytest` tests pass.
+- **Resolved at M24 (was previously disclosed as a known limitation
+  here):** 16 frontend `vitest` tests used to fail because the mock
+  server (MSW) hardcoded `localhost:8000` while `VITE_API_BASE_URL`
+  resolved to this environment's actual dev port. Fixed with a
+  mode-scoped `frontend/.env.test.local` (Vite loads a different env
+  file for `vitest`'s `test` mode than for the dev server), so the
+  deliberate dev-server port convention (`isi-frontend`/`isi-backend`
+  on 5180/8010, chosen to avoid clashing with other projects' dev
+  servers on 5173/8000) never had to change. One unrelated, disclosed
+  frontend test failure remains (see "What's the actual test
+  coverage?" above) - a stale assertion, not an environment mismatch.
 - **This is a decision-support and explainability layer, not a
   certified Safety Instrumented System (SIS).** It is meant to sit
   alongside existing hard-wired safety interlocks, not replace them.

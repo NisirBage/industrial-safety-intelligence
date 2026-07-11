@@ -27,6 +27,7 @@ const LINKS = [
   { to: "/comparison", label: "Comparison" },
   { to: "/demo-launcher", label: "Demo Launcher" },
   { to: "/diagnostics", label: "Diagnostics" },
+  { to: "/knowledge-graph", label: "Knowledge Graph" },
 ];
 
 export function NavBar() {
