@@ -58,3 +58,39 @@ def test_health_returns_503_without_a_migrated_database() -> None:
     # in setup, downgrade runs after) doesn't try to downgrade an
     # already-bare schema.
     command.upgrade(Config(str(ALEMBIC_INI)), "head")
+
+
+def test_platform_health_reports_every_subsystem_as_ok_with_real_data() -> None:
+    response = client.get("/api/v1/health/platform")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["version"]
+    assert body["latency_ms"] >= 0
+
+    names = {check["name"] for check in body["checks"]}
+    assert names == {
+        "API",
+        "Database",
+        "Replay Engine",
+        "Historical Intelligence",
+        "Operational Foresight",
+        "Knowledge Graph",
+        "Storage",
+        "Live Data Connectors",
+    }
+    assert all(check["status"] == "ok" for check in body["checks"])
+
+
+def test_platform_health_reports_database_error_without_a_migrated_database() -> None:
+    command.downgrade(Config(str(ALEMBIC_INI)), "base")
+
+    response = client.get("/api/v1/health/platform")
+
+    body = response.json()
+    assert body["status"] == "error"
+    database_check = next(c for c in body["checks"] if c["name"] == "Database")
+    assert database_check["status"] == "error"
+
+    command.upgrade(Config(str(ALEMBIC_INI)), "head")

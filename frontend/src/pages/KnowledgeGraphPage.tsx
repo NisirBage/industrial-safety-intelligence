@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 import { getGraphEntity, getGraphNeighbors } from "../api/graph";
 import type { GraphEdge, GraphEntity } from "../api/types";
@@ -152,6 +153,39 @@ export function KnowledgeGraphPage() {
 
   const rootKey = effectiveRoot ? nodeKey(effectiveRoot.kind, effectiveRoot.id) : "";
   const trail = effectiveRoot ? [...breadcrumbs, effectiveRoot] : breadcrumbs;
+
+  // M27 Part 10 (Search deep-links) - `?focus=kind:id` recenters the
+  // graph on a specific entity on load (e.g. from Enterprise Search),
+  // instead of always starting at the Plant root. Applied at most
+  // once per page load - after that, in-page navigation (breadcrumbs,
+  // search, node clicks) is the only thing that moves the root.
+  const [searchParams] = useSearchParams();
+  const appliedFocusRef = useRef(false);
+  useEffect(() => {
+    if (appliedFocusRef.current) {
+      return;
+    }
+    const focus = searchParams.get("focus");
+    if (!focus) {
+      return;
+    }
+    const separatorIndex = focus.indexOf(":");
+    if (separatorIndex < 1) {
+      return;
+    }
+    appliedFocusRef.current = true;
+    const kind = focus.slice(0, separatorIndex);
+    const id = focus.slice(separatorIndex + 1);
+    void queryClient
+      .fetchQuery({ queryKey: ["graph", "entity", kind, id], queryFn: () => getGraphEntity(kind, id) })
+      .then((entity) => handleRecenter(entity))
+      .catch(() => {
+        // An invalid/unreachable focus target just leaves the Plant root shown - not a hard error.
+      });
+    // Only ever fires once per mount, guarded above - `searchParams`/`handleRecenter`
+    // are intentionally excluded so a later unrelated param change never re-triggers it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section className="graph-page">

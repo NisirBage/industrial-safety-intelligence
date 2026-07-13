@@ -1,4 +1,5 @@
 import type { CounterfactualComparison, RiskAssessment } from "../../api/types";
+import { buildAgentContributionReason } from "../../lib/agentContributionReasons";
 import { explainComparison } from "../../lib/decisionComparison";
 import type { RiskJustification } from "../../lib/justification";
 import { hasInteractionBonus, rankContributingFactors } from "../../lib/rootCause";
@@ -59,6 +60,15 @@ export function RootCauseExplorer({
             <li key={factor.agentName}>
               <strong>{factor.displayName}:</strong> {factor.risk.toFixed(1)} risk (
               {(factor.confidence * 100).toFixed(0)}% confidence)
+              {justification && (
+                <p className="agent-contribution-reason">
+                  Reason: {buildAgentContributionReason(
+                    factor.agentName,
+                    { risk: factor.risk, confidence: factor.confidence },
+                    justification,
+                  )}
+                </p>
+              )}
             </li>
           ))}
         </ol>

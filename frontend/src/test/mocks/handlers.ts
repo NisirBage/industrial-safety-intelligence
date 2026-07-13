@@ -2,8 +2,10 @@ import { http, HttpResponse } from "msw";
 
 import type {
   AuditLogEntry,
+  ConnectorStatusResponse,
   CounterfactualComparison,
   CrossScenarioAnalytics,
+  EquipmentInfo,
   ForesightResult,
   GraphEntity,
   GraphNeighbors,
@@ -12,9 +14,13 @@ import type {
   GraphSubgraph,
   HistoricalDeck,
   IncidentMatchesResult,
+  IngestReadingResponse,
   Permit,
+  PlatformHealthResponse,
+  ReplayData,
   RiskAssessment,
   ScenarioSummary,
+  SensorInfo,
   Zone,
 } from "../../api/types";
 
@@ -112,6 +118,27 @@ export const mockCounterfactual: CounterfactualComparison = {
   compound: { compound_risk_score: 72.5, confidence: 0.8, tier: "elevated" },
 };
 
+export const mockReplay: ReplayData = {
+  zone_ids: [ZONE_A, ZONE_B],
+  start_time: "2026-07-01T08:00:00+00:00",
+  end_time: "2026-07-01T08:05:00+00:00",
+  duration_minutes: 5,
+  tick_count: 2,
+  zone_timelines: [
+    { zone_id: ZONE_A, assessments: [mockCurrentRisk[0]] },
+    { zone_id: ZONE_B, assessments: [mockCurrentRisk[1]] },
+  ],
+  bookmarks: [
+    {
+      timestamp: "2026-07-01T08:05:00+00:00",
+      zone_id: ZONE_A,
+      kind: "tier_change",
+      label: "Escalated to Elevated",
+      assessment_id: "a1",
+    },
+  ],
+};
+
 export const mockHistoricalDecks: HistoricalDeck[] = [
   {
     key: "demo-plant-incidents",
@@ -126,6 +153,12 @@ export const mockHistoricalDecks: HistoricalDeck[] = [
         safety_impact: "Demonstrates the full pipeline from sensor rise through tier escalation.",
       },
     ],
+  },
+  {
+    key: "oil-refinery",
+    name: "Oil Refinery",
+    description: "Structure supported - no incident data modeled yet.",
+    incidents: [],
   },
 ];
 
@@ -328,6 +361,95 @@ export const mockGraphPath: GraphPath = {
   ],
 };
 
+export const mockConnectorStatus: ConnectorStatusResponse = {
+  connectors: [
+    {
+      name: "CSV Watcher",
+      protocol: "CSV",
+      mode: "implemented",
+      description: "Real, functional - ingests sensor readings from a CSV file.",
+      readings_ingested_this_process: 0,
+    },
+    {
+      name: "REST API",
+      protocol: "HTTP",
+      mode: "implemented",
+      description: "Real, functional - POST /ingest/reading.",
+      readings_ingested_this_process: 3,
+    },
+    {
+      name: "MQTT Adapter",
+      protocol: "MQTT",
+      mode: "mock",
+      description: "Mocked - simulates one inbound message per poll.",
+      readings_ingested_this_process: 1,
+    },
+    {
+      name: "OPC-UA Connector",
+      protocol: "OPC-UA",
+      mode: "mock",
+      description: "Mocked - simulates one inbound message per poll.",
+      readings_ingested_this_process: 0,
+    },
+  ],
+};
+
+function mockZoneSensors(zoneId: string): SensorInfo[] {
+  return [
+    {
+      sensor_id: `sensor-${zoneId}`,
+      zone_id: zoneId,
+      gas_type: "CH4",
+      alarm_threshold: 50,
+      last_calibrated_at: "2026-06-01T00:00:00+00:00",
+    },
+  ];
+}
+
+function mockZoneEquipment(zoneId: string): EquipmentInfo[] {
+  return [
+    {
+      equipment_id: `equipment-${zoneId}`,
+      zone_id: zoneId,
+      equipment_type: "compressor",
+      isolation_status: "operational",
+      maintenance_flag: false,
+      loto_confirmed: false,
+    },
+  ];
+}
+
+export const mockPlatformHealth: PlatformHealthResponse = {
+  status: "ok",
+  version: "1.0.0",
+  latency_ms: 4.2,
+  checks: [
+    { name: "API", status: "ok", detail: "process responding" },
+    { name: "Database", status: "ok", detail: "connected, migration 0002" },
+    { name: "Replay Engine", status: "ok", detail: "3 scenario(s) cataloged" },
+    { name: "Historical Intelligence", status: "ok", detail: "1 deck(s), 3 incident(s)" },
+    {
+      name: "Operational Foresight",
+      status: "ok",
+      detail: "trajectory matching available (derives from historical decks + live replay ticks)",
+    },
+    { name: "Knowledge Graph", status: "ok", detail: "12 recommendation template(s) loaded" },
+    { name: "Storage", status: "ok", detail: "database size 42 MB" },
+    { name: "Live Data Connectors", status: "ok", detail: "2 implemented, 2 mocked" },
+  ],
+};
+
+export const mockIngestedReading: IngestReadingResponse = {
+  reading_id: "r1",
+  sensor_id: "s1",
+  zone_id: ZONE_A,
+  gas_type: "CH4",
+  value: 21.0,
+  unit: "ppm",
+  timestamp: "2026-07-12T00:00:00+00:00",
+  quality_flag: "ok",
+};
+
 export const handlers = [
   http.get("http://localhost:8000/api/v1/risk/current", () => {
     return HttpResponse.json(mockCurrentRisk);
@@ -376,8 +498,17 @@ export const handlers = [
   http.get("http://localhost:8000/api/v1/counterfactual/:zoneId", () => {
     return HttpResponse.json(mockCounterfactual);
   }),
+  http.get("http://localhost:8000/api/v1/replay", () => {
+    return HttpResponse.json(mockReplay);
+  }),
   http.get("http://localhost:8000/api/v1/zones/:zoneId/workers/count", ({ params }) => {
     return HttpResponse.json({ zone_id: params.zoneId, worker_count: 2 });
+  }),
+  http.get("http://localhost:8000/api/v1/zones/:zoneId/sensors", ({ params }) => {
+    return HttpResponse.json(mockZoneSensors(String(params.zoneId)));
+  }),
+  http.get("http://localhost:8000/api/v1/zones/:zoneId/equipment", ({ params }) => {
+    return HttpResponse.json(mockZoneEquipment(String(params.zoneId)));
   }),
   http.get("http://localhost:8000/api/v1/historical/decks", () => {
     return HttpResponse.json(mockHistoricalDecks);
@@ -405,5 +536,17 @@ export const handlers = [
   }),
   http.get("http://localhost:8000/api/v1/graph/path", () => {
     return HttpResponse.json(mockGraphPath);
+  }),
+  http.get("http://localhost:8000/api/v1/ingest/status", () => {
+    return HttpResponse.json(mockConnectorStatus);
+  }),
+  http.post("http://localhost:8000/api/v1/ingest/mock/:protocol", () => {
+    return HttpResponse.json(mockIngestedReading);
+  }),
+  http.post("http://localhost:8000/api/v1/ingest/reading", () => {
+    return HttpResponse.json(mockIngestedReading);
+  }),
+  http.get("http://localhost:8000/api/v1/health/platform", () => {
+    return HttpResponse.json(mockPlatformHealth);
   }),
 ];

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import { DecisionEvolution } from "../components/explainability/DecisionEvolution";
 import { EngineInsight } from "../components/explainability/EngineInsight";
+import { ExecutiveChangeSummary } from "../components/explainability/ExecutiveChangeSummary";
+import { OperationalNarrativeTimeline } from "../components/explainability/OperationalNarrativeTimeline";
 import { PipelineDiagram } from "../components/explainability/PipelineDiagram";
 import { RecommendationList } from "../components/explainability/RecommendationList";
 import { RootCauseExplorer } from "../components/explainability/RootCauseExplorer";
@@ -15,15 +17,19 @@ import { ReplayController } from "../components/replay/ReplayController";
 import { ScenarioPicker } from "../components/replay/ScenarioPicker";
 import { TierBadge } from "../components/common/TierBadge";
 import { useReplay } from "../context/ReplayContext";
+import { useForesightForecast } from "../hooks/useForesightForecast";
+import { useHistoricalMatches } from "../hooks/useHistoricalMatches";
 import { usePermits } from "../hooks/usePermits";
 import { useAllZoneSensors } from "../hooks/useScenarioBuilder";
 import { useZoneCounterfactuals } from "../hooks/useZoneCounterfactuals";
 import { useZoneWorkerCounts } from "../hooks/useZoneWorkerCounts";
 import { useZones } from "../hooks/useZones";
+import { buildChangeSummary } from "../lib/changeSummary";
 import { generateExecutiveExplanation } from "../lib/executiveExplanation";
 import { averageCompoundScore, plantReadiness, percentZonesNormal } from "../lib/executiveKpis";
 import { zoneLabel } from "../lib/format";
 import { parseJustification } from "../lib/justification";
+import { buildOperationalNarrative } from "../lib/operationalNarrative";
 import { activePermitTypesForZone } from "../lib/permitIcons";
 import { deriveRecommendations } from "../lib/recommendations";
 import { worstTier } from "../lib/tier";
@@ -63,6 +69,27 @@ export function TimeMachinePage() {
     assessmentsAtCursor.map(({ zoneId, assessment }) => ({ zoneId, timestamp: assessment.timestamp })),
   );
 
+  const displayZoneId = focusedZoneId ?? assessmentsAtCursor[0]?.zoneId ?? null;
+  const displayAssessment = assessmentsAtCursor.find((e) => e.zoneId === displayZoneId)?.assessment;
+  const displayZoneTimeline = displayZoneId ? replay.zoneTimeline(displayZoneId) : [];
+  const displayTickIndex = displayAssessment
+    ? displayZoneTimeline.findIndex((a) => a.assessment_id === displayAssessment.assessment_id)
+    : -1;
+  const previousAssessment = displayTickIndex > 0 ? displayZoneTimeline[displayTickIndex - 1] : null;
+
+  const { data: currentHistoricalMatches } = useHistoricalMatches(displayZoneId ?? undefined, displayAssessment?.timestamp);
+  const { data: previousHistoricalMatches } = useHistoricalMatches(displayZoneId ?? undefined, previousAssessment?.timestamp);
+  const { data: currentForesight } = useForesightForecast(
+    displayZoneId ?? undefined,
+    displayAssessment?.timestamp,
+    replay.target?.scenarioKey,
+  );
+  const { data: previousForesight } = useForesightForecast(
+    displayZoneId ?? undefined,
+    previousAssessment?.timestamp,
+    replay.target?.scenarioKey,
+  );
+
   if (replay.target === null) {
     return (
       <section>
@@ -99,8 +126,6 @@ export function TimeMachinePage() {
     };
   });
 
-  const displayZoneId = focusedZoneId ?? assessmentsAtCursor[0]?.zoneId ?? null;
-  const displayAssessment = assessmentsAtCursor.find((e) => e.zoneId === displayZoneId)?.assessment;
   const displayJustification = displayAssessment ? parseJustification(displayAssessment.justification) : null;
   const displayRecommendations = displayAssessment
     ? deriveRecommendations(displayAssessment.tier, displayJustification)
@@ -113,6 +138,17 @@ export function TimeMachinePage() {
     ? generateExecutiveExplanation(displayAssessment, displayJustification, displayRecommendations)
     : null;
   const displayZoneBookmarks = replay.bookmarks.filter((b) => b.zone_id === displayZoneId);
+
+  const changeSummary = displayAssessment
+    ? buildChangeSummary({
+        previousAssessment,
+        currentAssessment: displayAssessment,
+        previousBestMatch: previousHistoricalMatches?.matches[0],
+        currentBestMatch: currentHistoricalMatches?.matches[0],
+        previousForesight,
+        currentForesight,
+      })
+    : [];
 
   return (
     <section>
@@ -171,6 +207,22 @@ export function TimeMachinePage() {
               )}
 
               {displayZoneId && <DecisionEvolution zoneId={displayZoneId} />}
+
+              {displayZoneId && (
+                <div className="card">
+                  <h3>Operational Narrative</h3>
+                  <OperationalNarrativeTimeline
+                    entries={buildOperationalNarrative(replay.zoneTimeline(displayZoneId))}
+                  />
+                </div>
+              )}
+
+              {displayZoneId && displayAssessment && (
+                <div className="card">
+                  <h3>What Changed?</h3>
+                  <ExecutiveChangeSummary entries={changeSummary} />
+                </div>
+              )}
 
               {displayZoneId && displayAssessment && (
                 <HistoricalIntelligencePanel

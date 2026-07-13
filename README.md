@@ -78,7 +78,7 @@ cross-linked (`docs/architecture/operations_center.md`) — see
 │              migrations, session management                   │
 └───────────────────────────┴────────────────────────────────┘
                              │
-                        PostgreSQL (TimescaleDB image)
+                    PostgreSQL (TimescaleDB optional, auto-detected)
 ```
 
 One-directional dependency chain, enforced by convention and by
@@ -154,10 +154,35 @@ to capture if you need a static set. What you'll see:
   audit-log writer is deferred (`GET /api/v1/audit` correctly returns
   `[]`, not an error).
 
+## Database: PostgreSQL, TimescaleDB optional
+
+This project runs fully on **standard PostgreSQL** — no extension
+required. `alembic upgrade head` detects whether the TimescaleDB
+extension is installed on your server (via PostgreSQL's own
+`pg_available_extensions` catalog) and only then enables it and
+converts `sensor_readings`/`risk_assessments` into hypertables for
+time-series query optimization. On a plain PostgreSQL install (the
+common case for a judge or contributor evaluating this project on
+their own machine), both tables are created as ordinary PostgreSQL
+tables instead — every column, index, constraint, repository, and API
+response is identical either way. Nothing in this codebase depends on
+TimescaleDB being present.
+
+There is exactly **one** `DATABASE_URL` format, used identically by
+Alembic, the seed script, the simulation runner, and the API server —
+no separate escaping rules for any one of them. If your password
+contains a character that isn't valid in a URL (e.g. `#`, `@`, `:`,
+`%`), percent-encode it once, the normal way (a literal `#` becomes
+`%23`):
+
+```
+DATABASE_URL=postgresql+psycopg://postgres:mypass%23word@localhost:5432/isip
+```
+
 ## Installation
 
 Requires Python 3.12+, Node 20+, and either Docker or a local
-PostgreSQL instance.
+PostgreSQL instance (TimescaleDB optional — see above).
 
 ```bash
 git clone <this-repo>

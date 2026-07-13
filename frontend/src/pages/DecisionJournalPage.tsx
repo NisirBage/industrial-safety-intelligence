@@ -63,7 +63,10 @@ function JournalEntryRow({
             <>
               <p>Interaction bonus applied: {justification.interactionBonusApplied.toFixed(2)}</p>
               <h4>Decision Contributors</h4>
-              <AgentContributionChart contributions={justification.agentContributions} />
+              <AgentContributionChart
+                contributions={justification.agentContributions}
+                justification={justification}
+              />
               <h4>Rules Fired</h4>
               <RulesFiredList rules={justification.rulesFired} />
             </>

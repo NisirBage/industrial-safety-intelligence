@@ -18,25 +18,35 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
 
 from alembic import context  # noqa: E402
-from sqlalchemy import engine_from_config, pool  # noqa: E402
+from sqlalchemy import create_engine, pool  # noqa: E402
 
 from src.config.settings import get_settings  # noqa: E402
 from src.infra.db.models import Base  # noqa: E402
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
+# The DSN is read directly from `get_settings().database_url` at the
+# point each `run_migrations_*` function needs it, and handed straight
+# to SQLAlchemy's own `create_engine`/`context.configure(url=...)` -
+# the exact same call every other entry point (`session.py`, `seed.py`,
+# `simulation_runner.py`, `api/main.py`) already makes. It is
+# deliberately never passed through `Config.set_main_option`/
+# `get_section`, which route values through a `configparser.ConfigParser`
+# that performs `%`-interpolation on every value it stores - silently
+# corrupting (or, for an unescaped single `%`, outright rejecting) any
+# password containing a literal `%` character (e.g. a URL-encoded
+# `#` as `%23`). One DSN, one interpretation, everywhere.
+
 
 def run_migrations_offline() -> None:
     """Emit migration SQL without a live database connection."""
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=get_settings().database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -47,11 +57,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations against a live database connection."""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(get_settings().database_url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

@@ -5,12 +5,27 @@ database.
 from src.historical.decks import HISTORICAL_DECKS, all_incidents, get_deck
 
 
-def test_exactly_one_real_deck_exists() -> None:
+def test_exactly_one_deck_has_incident_data() -> None:
     """Per this milestone's explicit design decision: no fabricated
-    industry decks, one honest deck wrapping the platform's real
-    scenario catalog."""
-    assert len(HISTORICAL_DECKS) == 1
-    assert HISTORICAL_DECKS[0].key == "demo-plant-incidents"
+    industry decks. M28 Part 10 registered 7 total decks (the 1 real
+    deck plus 6 industry stubs - Oil Refinery, Steel, Chemical,
+    Mining, Power, LNG - proving the multi-deck architecture is
+    genuinely industry-generic), but only the one real deck wrapping
+    the platform's actual scenario catalog has any incidents - the
+    other 6 are honestly empty stubs."""
+    assert len(HISTORICAL_DECKS) == 7
+    decks_with_data = [deck for deck in HISTORICAL_DECKS if deck.incidents]
+    assert len(decks_with_data) == 1
+    assert decks_with_data[0].key == "demo-plant-incidents"
+
+
+def test_stub_decks_are_registered_and_honestly_empty() -> None:
+    stub_keys = {"oil-refinery", "steel", "chemical", "mining", "power", "lng"}
+    for key in stub_keys:
+        deck = get_deck(key)
+        assert deck is not None
+        assert deck.incidents == []
+        assert "no incident data modeled yet" in deck.description
 
 
 def test_deck_incidents_reference_all_three_real_scenarios() -> None:

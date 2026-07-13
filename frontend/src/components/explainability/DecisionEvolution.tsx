@@ -41,7 +41,10 @@ export function DecisionEvolution({ zoneId }: { zoneId: string }) {
                 </p>
                 {justification && (
                   <>
-                    <AgentContributionChart contributions={justification.agentContributions} />
+                    <AgentContributionChart
+                      contributions={justification.agentContributions}
+                      justification={justification}
+                    />
                     {justification.interactionBonusApplied > 1 &&
                       justification.rulesFired.includes("interaction_bonus_applied") && (
                         <p className="decision-evolution-bonus">

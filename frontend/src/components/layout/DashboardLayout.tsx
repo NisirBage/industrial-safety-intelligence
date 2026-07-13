@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { JudgeQuickViewOverlay } from "../presentation/JudgeQuickViewOverlay";
 import { usePresentationMode } from "../../context/PresentationModeContext";
 import { DemoModeBanner } from "./DemoModeBanner";
+import { GlobalSearch } from "./GlobalSearch";
 import { NavBar } from "./NavBar";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -39,6 +40,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </button>
       )}
       <JudgeQuickViewOverlay />
+      <GlobalSearch />
       <main className="dashboard-content dashboard-content-transition" ref={contentRef}>
         {children}
       </main>

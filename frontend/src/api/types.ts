@@ -504,3 +504,56 @@ export interface GraphPath {
   found: boolean;
   edges: GraphEdge[];
 }
+
+/** M27 Part 1 (Compliance & Standards) - mirrors src/api/schemas/compliance.py. */
+export interface StandardReferenceResponse {
+  code: string;
+  title: string;
+  summary: string;
+  applicability: string;
+  external_reference: string;
+}
+
+export interface ComplianceStandardsResponse {
+  recommendation_id: string;
+  standards: StandardReferenceResponse[];
+}
+
+/** M27 Part 4 (Live Data Connectors) - mirrors src/api/schemas/ingest.py. */
+export interface IngestReadingResponse {
+  reading_id: string;
+  sensor_id: string;
+  zone_id: string;
+  gas_type: string;
+  value: number;
+  unit: string;
+  timestamp: string;
+  quality_flag: string;
+}
+
+export interface ConnectorStatus {
+  name: string;
+  protocol: string;
+  mode: "implemented" | "mock";
+  description: string;
+  readings_ingested_this_process: number;
+}
+
+export interface ConnectorStatusResponse {
+  connectors: ConnectorStatus[];
+}
+
+/** M27 Part 6 (Enterprise Health Dashboard) - mirrors
+ * src/api/schemas/platform_health.py. */
+export interface SubsystemCheck {
+  name: string;
+  status: "ok" | "degraded" | "error";
+  detail: string;
+}
+
+export interface PlatformHealthResponse {
+  status: "ok" | "degraded" | "error";
+  version: string;
+  latency_ms: number;
+  checks: SubsystemCheck[];
+}

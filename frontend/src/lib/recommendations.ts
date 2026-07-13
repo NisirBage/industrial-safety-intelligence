@@ -86,6 +86,15 @@ const RULE_RECOMMENDATIONS: Record<string, Recommendation> = {
   },
 };
 
+/** M27 Part 3 (Enterprise Search) - the static recommendation
+ * vocabulary (tier baselines + rule-keyed templates), for searching
+ * recommendation *text*, not a specific tick's instance. Deduplicated
+ * since `RULE_RECOMMENDATIONS` and `TIER_BASELINE` never share an id. */
+export const ALL_RECOMMENDATION_TEMPLATES: Recommendation[] = [
+  ...Object.values(TIER_BASELINE),
+  ...Object.values(RULE_RECOMMENDATIONS),
+];
+
 /** One baseline recommendation for the tier (if any - "normal" has
  * none), plus one recommendation per distinct recognized rule in
  * `rulesFired`, in the order the rules themselves fired. Unrecognized

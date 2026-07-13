@@ -1,4 +1,5 @@
 import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 
@@ -38,6 +39,26 @@ describe("HistoricalIntelligencePanel", () => {
     await waitFor(() =>
       expect(screen.getByText(/no similar historical incidents found/i)).toBeInTheDocument(),
     );
+  });
+
+  it("shows an honest 'not modeled yet' message for an empty industry deck, not the generic first-tick copy", async () => {
+    server.use(
+      http.get("http://localhost:8000/api/v1/historical/matches", () =>
+        HttpResponse.json({ zone_id: ZONE_ID, timestamp: TIMESTAMP, matches: [] }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(
+      <HistoricalIntelligencePanel zoneId={ZONE_ID} timestamp={TIMESTAMP} currentTimeline={[]} />,
+    );
+
+    await waitFor(() => expect(screen.getByText("Oil Refinery")).toBeInTheDocument());
+    await user.click(screen.getByText("Oil Refinery"));
+
+    await waitFor(() =>
+      expect(screen.getByText("No historical incidents for Oil Refinery yet.")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/no incident data modeled yet for this industry deck/)).toBeInTheDocument();
   });
 
   it("shows the backend's error envelope when the matches request fails", async () => {

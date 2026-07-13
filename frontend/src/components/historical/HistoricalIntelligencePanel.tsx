@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import type { RiskAssessment } from "../../api/types";
 import { QueryResult } from "../common/QueryResult";
+import { useHistoricalDecks } from "../../hooks/useHistoricalDecks";
 import { useHistoricalMatches } from "../../hooks/useHistoricalMatches";
 import { historicalExecutiveInsights } from "../../lib/historicalExplanation";
 import { CrossScenarioAnalyticsPanel } from "./CrossScenarioAnalyticsPanel";
@@ -34,10 +35,14 @@ export function HistoricalIntelligencePanel({
     topN: 5,
     deckKey: selectedDeckKey,
   });
+  const { data: decks } = useHistoricalDecks();
 
   const matches = data?.matches ?? [];
   const insights = historicalExecutiveInsights(matches);
   const topMatch = matches[0];
+
+  const selectedDeck = decks?.find((deck) => deck.key === selectedDeckKey);
+  const isRoadmapDeck = selectedDeck !== undefined && selectedDeck.incidents.length === 0;
 
   return (
     <div className="historical-intelligence-panel">
@@ -53,8 +58,16 @@ export function HistoricalIntelligencePanel({
         isLoading={isLoading}
         error={error}
         isEmpty={matches.length === 0}
-        emptyLabel="No similar historical incidents found for this assessment."
-        emptyHint="This can happen for the very first tick of a scenario, before any history exists to compare against."
+        emptyLabel={
+          isRoadmapDeck
+            ? `No historical incidents for ${selectedDeck?.name} yet.`
+            : "No similar historical incidents found for this assessment."
+        }
+        emptyHint={
+          isRoadmapDeck
+            ? "Structure supported - no incident data modeled yet for this industry deck."
+            : "This can happen for the very first tick of a scenario, before any history exists to compare against."
+        }
         onRetry={() => void refetch()}
       >
         {insights.length > 0 && (

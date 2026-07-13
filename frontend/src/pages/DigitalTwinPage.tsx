@@ -5,6 +5,8 @@ import type { RiskAssessment } from "../api/types";
 import { QueryResult } from "../components/common/QueryResult";
 import { PlantMap, type PlantMapZone } from "../components/plant/PlantMap";
 import { ZoneInspectorDrawer } from "../components/plant/ZoneInspectorDrawer";
+import { BookmarksPanel } from "../components/replay/BookmarksPanel";
+import { ReplayController } from "../components/replay/ReplayController";
 import { useReplay } from "../context/ReplayContext";
 import { useCurrentRisk } from "../hooks/useCurrentRisk";
 import { usePermits } from "../hooks/usePermits";
@@ -86,6 +88,13 @@ export function DigitalTwinPage() {
           Showing a Time Machine replay tick, not live data.{" "}
           <Link to="/time-machine">Open Time Machine controls &rarr;</Link>
         </p>
+      )}
+
+      {isReplayMode && (
+        <>
+          <ReplayController />
+          <BookmarksPanel />
+        </>
       )}
 
       <QueryResult

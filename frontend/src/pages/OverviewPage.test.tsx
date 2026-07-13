@@ -16,8 +16,10 @@ describe("OverviewPage", () => {
     renderWithProviders(<OverviewPage />);
 
     await waitFor(() => expect(screen.getByText("Zones reporting: 2")).toBeInTheDocument());
-    // "elevated" appears twice: the plant-status badge and zone A's own card.
-    expect(screen.getAllByText("elevated").length).toBe(2);
+    // "elevated" appears three times: the plant-status badge, zone A's own
+    // card, and PlantMap's own static legend entry (always rendered,
+    // regardless of data).
+    expect(screen.getAllByText("elevated").length).toBe(3);
   });
 
   it("shows an empty state when no zone has reported yet", async () => {

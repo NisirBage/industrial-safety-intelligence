@@ -493,46 +493,6 @@ button:not(:disabled):active::after {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .card,
-  .nav-link,
-  button,
-  .skeleton-line,
-  .plant-zone-fill,
-  .plant-zone-critical-pulse,
-  .tier-badge,
-  .replay-cursor-readout,
-  .decision-evolution-tick,
-  .pipeline-stage-active,
-  .pipeline-stage-tracing,
-  .plant-zone-heat-drift,
-  .dependency-graph-node-tracing,
-  .scene,
-  .presentation-mode-progress-fill,
-  .hero-launch-card,
-  .action-card-detail,
-  .permit-card-detail,
-  .plant-zones-camera,
-  .tier-fill-normal,
-  .plant-zone-icon,
-  .plant-map-legend,
-  .plant-zone-heat,
-  .dashboard-content-transition,
-  .zone-inspector-drawer,
-  .operator-timeline-entry,
-  .execute-success-banner,
-  .demo-timeline-card,
-  .decision-timeline-node,
-  .executive-story-list li,
-  .mission-control-action-list li,
-  .historical-match-card,
-  button::after,
-  body {
-    transition: none;
-    animation: none;
-  }
-}
-
 .tier-badge {
   display: inline-block;
   padding: 0.15rem var(--space-3);
@@ -759,6 +719,58 @@ tbody tr:hover {
 
 .recommendation-medium {
   border-left-color: var(--tier-watch);
+}
+
+.recommendation-text {
+  margin: 0;
+}
+
+.recommendation-standards {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.recommendation-standards summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.recommendation-standards-list {
+  list-style: none;
+  margin: var(--space-2) 0 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.recommendation-standards-list li {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.recommendation-standard-heading {
+  margin: 0 0 2px 0;
+  font-weight: 600;
+}
+
+.recommendation-standard-summary {
+  margin: 0 0 2px 0;
+  color: var(--text-muted);
+}
+
+.recommendation-standard-applicability {
+  margin: 0 0 2px 0;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.recommendation-standard-reference {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .alert-list {
@@ -1295,7 +1307,8 @@ tbody tr:hover {
 /* M16 (Digital Twin) - gentle drift on the gas-heat ellipse so an
    active leak reads as "live" rather than a static wash. Subtle by
    design (scale/opacity only, no position jitter) and fully covered
-   by the prefers-reduced-motion exception list above. */
+   by the prefers-reduced-motion exception list at the end of this
+   file. */
 .plant-zone-heat-drift {
   animation: gas-drift 3.2s ease-in-out infinite;
   transform-origin: center;
@@ -3082,11 +3095,31 @@ tbody tr:hover {
   background: var(--card-bg, var(--bg));
   color: inherit;
   font: inherit;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.historical-deck-card:hover {
+  border-color: var(--border-strong);
 }
 
 .historical-deck-card-selected {
   border-color: var(--tier-elevated);
   box-shadow: 0 0 0 1px var(--tier-elevated);
+}
+
+/* M28 Part 10 (Multi-Deck Evolution) - same honest "not built yet"
+   disclosure pattern as .plant-map-legend-roadmap: a dashed, muted
+   pill, never implying the deck has real incident data. */
+.historical-deck-roadmap-badge {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  opacity: 0.75;
+  cursor: default;
 }
 
 .historical-executive-insights ul {
@@ -4146,5 +4179,892 @@ tbody tr:hover {
 
   .graph-side-panel {
     max-height: none;
+  }
+}
+
+/* M27 Part 7 (Confidence Breakdown) */
+.confidence-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.confidence-breakdown-row {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.confidence-breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.confidence-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-1);
+}
+
+.confidence-breakdown-label {
+  font-weight: 600;
+}
+
+.confidence-breakdown-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.confidence-breakdown-category {
+  font-size: var(--font-size-sm);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+}
+
+.confidence-breakdown-unavailable {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.confidence-breakdown-bar-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  overflow: hidden;
+  margin-bottom: var(--space-1);
+}
+
+.confidence-breakdown-bar-fill {
+  height: 100%;
+  background: var(--focus-ring);
+  border-radius: var(--radius-pill);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+
+.confidence-breakdown-source {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* M27 Part 2 (Decision Report Generator) */
+.decision-report-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+.decision-report-toolbar button {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--focus-ring);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.decision-report-toolbar button:hover {
+  opacity: 0.9;
+}
+
+/* M27 Part 3 (Enterprise Search) */
+.global-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.global-search-trigger kbd {
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.global-search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.global-search-modal {
+  width: min(640px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+
+.global-search-input {
+  padding: var(--space-4);
+  font-size: var(--font-size-md);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.global-search-input:focus {
+  outline: none;
+}
+
+.global-search-results {
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.global-search-hint {
+  color: var(--text-muted);
+  padding: var(--space-3);
+  margin: 0;
+  text-align: center;
+}
+
+.global-search-group h4 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.global-search-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.global-search-group button {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.global-search-group button:hover {
+  background: var(--bg);
+}
+
+.global-search-result-label {
+  font-weight: 600;
+}
+
+.global-search-result-detail {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.global-search-footer {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* M27 Part 4 (Live Data Connectors) */
+.connector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.connector-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.connector-card-header h3 {
+  margin: 0;
+}
+
+.connector-badge {
+  font-size: var(--font-size-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+.connector-badge-implemented {
+  background: var(--tier-normal);
+  color: #fff;
+}
+
+.connector-badge-mock {
+  background: var(--tier-watch);
+  color: #3a2e00;
+}
+
+.connector-protocol {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.connector-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.connector-simulate-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.connector-simulate-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-sm);
+}
+
+.connector-simulate-form select {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.connector-simulate-form button {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+
+.connector-simulate-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.connector-simulate-result {
+  margin-top: var(--space-3);
+  color: var(--tier-normal-text);
+}
+
+.connector-simulate-error {
+  margin-top: var(--space-3);
+  color: var(--tier-critical);
+}
+
+/* M27 Part 5 (Multi-Plant Command Center) */
+.enterprise-corporate-overview {
+  margin-bottom: var(--space-4);
+}
+
+.enterprise-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.enterprise-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.enterprise-kpi-value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.enterprise-kpi-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.enterprise-readiness {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.enterprise-readiness-ready {
+  background: var(--tier-normal);
+  color: #fff;
+}
+
+.enterprise-readiness-degraded {
+  background: var(--tier-watch);
+  color: #3a2e00;
+}
+
+.enterprise-readiness-not_ready {
+  background: var(--tier-critical);
+  color: #fff;
+}
+
+.enterprise-plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.enterprise-plant-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.enterprise-plant-ready {
+  border-left: 4px solid var(--tier-normal);
+}
+
+.enterprise-plant-degraded {
+  border-left: 4px solid var(--tier-watch);
+}
+
+.enterprise-plant-not_ready {
+  border-left: 4px solid var(--tier-critical);
+}
+
+.enterprise-plant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.enterprise-plant-header h3 {
+  margin: 0;
+}
+
+.enterprise-plant-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0 0;
+}
+
+.enterprise-plant-stats dt {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.enterprise-plant-stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* M27 Part 6 (Enterprise Health Dashboard) */
+.enterprise-health-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.enterprise-health-overall {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+}
+
+.enterprise-health-ok {
+  background: var(--tier-normal);
+  color: #fff;
+}
+
+.enterprise-health-degraded {
+  background: var(--tier-watch);
+  color: #3a2e00;
+}
+
+.enterprise-health-error {
+  background: var(--tier-critical);
+  color: #fff;
+}
+
+.enterprise-health-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.enterprise-health-meta dt {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.enterprise-health-meta dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.enterprise-health-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.enterprise-health-card-header h3 {
+  margin: 0;
+}
+
+.enterprise-health-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+}
+
+/* M27 Part 9 (Executive/CEO Mode) */
+.ceo-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.ceo-dashboard-card-wide {
+  grid-column: 1 / -1;
+}
+
+.ceo-dashboard-value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: var(--space-2) 0;
+}
+
+.ceo-risk-severe {
+  color: var(--tier-critical);
+}
+
+.ceo-risk-significant {
+  color: var(--tier-elevated);
+}
+
+.ceo-risk-moderate {
+  color: var(--tier-watch);
+}
+
+.ceo-risk-low {
+  color: var(--tier-normal);
+}
+
+/* M28 Part 1 (Decision Workspace) */
+.decision-workspace-header {
+  margin-bottom: var(--space-3);
+}
+
+.decision-workspace-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.decision-workspace-step {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.decision-workspace-step:hover {
+  background: var(--surface-raised);
+}
+
+.decision-workspace-step-active {
+  background: var(--focus-ring);
+  border-color: var(--focus-ring);
+  color: #fff;
+}
+
+.decision-workspace-content {
+  min-height: 220px;
+}
+
+.decision-workspace-narrative {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.decision-workspace-top-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.decision-workspace-action-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.decision-workspace-action-meta dt {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.decision-workspace-action-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.decision-workspace-ack-form,
+.decision-workspace-ack-confirmed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 480px;
+}
+
+/* M28 Part 11 (Microinteractions) - the same "success banner" treatment
+   (.execute-success-banner) every other confirmed-action moment in this
+   app already gets, so acknowledging a decision reads as a real success
+   moment rather than text silently appearing. */
+.decision-workspace-ack-confirmed {
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--tier-normal) 12%, transparent);
+  border: 1px solid var(--tier-normal);
+  border-radius: var(--radius-md);
+  animation: success-pop-in var(--duration-base) var(--ease-emphasized);
+}
+
+.decision-workspace-ack-confirmed p {
+  color: var(--tier-normal-text);
+  font-weight: 600;
+  margin: 0;
+}
+
+.decision-workspace-ack-form textarea {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.decision-workspace-ack-form button,
+.decision-workspace-ack-confirmed button {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+
+/* M28 Part 2 (Decision Stability) */
+.decision-stability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.decision-stability-grid dt {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.decision-stability-grid dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.decision-stability-oscillation-none {
+  color: var(--tier-normal);
+}
+
+.decision-stability-oscillation-detected {
+  color: var(--tier-elevated);
+}
+
+/* M28 Part 3 (Operational Narrative) */
+.operational-narrative {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.operational-narrative-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.operational-narrative-time {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.operational-narrative-sentence {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-base);
+}
+
+.operational-narrative-arrow {
+  align-self: center;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2) 0;
+}
+
+/* M28 Part 4 (Replay Comparison Mode) */
+.replay-comparison-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+.replay-comparison-picker {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.replay-comparison-picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-sm);
+}
+
+.replay-comparison-scrubber {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 260px;
+}
+
+.replay-comparison-scrubber input[type="range"] {
+  flex: 1;
+}
+
+.replay-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.replay-comparison-risk {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+/* M28 Part 5 (Digital Twin Polish) - a continuous glow on equipment
+   already flagged elevated/critical (real `equipmentRisk`, the same
+   number the Explainability page's agent chart shows), so ongoing
+   degradation reads as a live state rather than a one-time color
+   change. Overrides `.plant-zone-icon`'s mount-only pop-in for these
+   two severity levels specifically. */
+.plant-zone-icon-equipment-elevated,
+.plant-zone-icon-equipment-critical {
+  animation: equipment-state-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes equipment-state-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* A gentle presence bob while a zone has workers currently assigned -
+   deliberately not a claim about real worker position/movement
+   telemetry (this platform has none), just an ambient "someone is
+   here" cue on top of the real `workerCount > 0` fact. */
+.plant-zone-icon-worker {
+  animation: zone-icon-pop-in var(--duration-base) var(--ease-emphasized),
+    worker-presence-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes worker-presence-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+/*
+ * M28 Part 5 - moved to the end of the stylesheet (was previously
+ * defined near the top, before most of the `animation:` rules it's
+ * meant to override). Equal-specificity CSS rules resolve ties by
+ * source order, so a reduced-motion override positioned earlier than
+ * the animation it targets loses the cascade and silently does
+ * nothing - which is exactly what was happening here for
+ * `.plant-zone-critical-pulse`, `.plant-zone-heat-drift`, and
+ * `.plant-zone-icon` (all defined later in the file than the old
+ * block). Keeping this block last guarantees it wins for every listed
+ * selector, present and future, without relying on `!important`.
+ */
+/* M28 Part 6 (Executive Change Summary - "What Changed?") */
+.change-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.change-summary-entry {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+}
+
+.change-summary-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+.change-summary-arrow {
+  color: var(--text-muted);
+}
+
+.change-summary-after {
+  font-weight: 600;
+}
+
+.agent-contribution-reason {
+  margin: 0.35rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.agent-contribution-reason-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.agent-contribution-reason-list li {
+  margin-bottom: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .nav-link,
+  button,
+  .skeleton-line,
+  .plant-zone-fill,
+  .plant-zone-critical-pulse,
+  .tier-badge,
+  .replay-cursor-readout,
+  .decision-evolution-tick,
+  .pipeline-stage-active,
+  .pipeline-stage-tracing,
+  .plant-zone-heat-drift,
+  .dependency-graph-node-tracing,
+  .scene,
+  .presentation-mode-progress-fill,
+  .hero-launch-card,
+  .action-card-detail,
+  .permit-card-detail,
+  .plant-zones-camera,
+  .tier-fill-normal,
+  .plant-zone-icon,
+  .plant-zone-icon-worker,
+  .plant-zone-icon-equipment-elevated,
+  .plant-zone-icon-equipment-critical,
+  .plant-map-legend,
+  .plant-zone-heat,
+  .dashboard-content-transition,
+  .zone-inspector-drawer,
+  .operator-timeline-entry,
+  .execute-success-banner,
+  .demo-timeline-card,
+  .decision-timeline-node,
+  .executive-story-list li,
+  .mission-control-action-list li,
+  .historical-match-card,
+  .decision-workspace-ack-confirmed,
+  .global-search-group button,
+  .historical-deck-card,
+  button::after,
+  body {
+    transition: none;
+    animation: none;
   }
 }

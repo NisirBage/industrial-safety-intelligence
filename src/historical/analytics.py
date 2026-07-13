@@ -12,9 +12,10 @@ invented data:
   is sensor/permit events in, risk assessments out, with no feedback
   loop for "and then the operator did X, and risk fell". There is
   nothing to measure effectiveness against.
-- **Industry comparisons**: there is exactly one deck, on one
-  simulated plant - no second industry exists anywhere in this
-  codebase's data to compare against.
+- **Industry comparisons**: 6 industry decks are registered (M28 Part
+  10), but only one has incident data - it is on one simulated plant,
+  so no second industry exists anywhere in this codebase's data to
+  compare against.
 
 Both are represented as an explicit unavailable marker (the same
 "Status: Unavailable" honesty pattern this platform already uses
@@ -116,7 +117,7 @@ def _rule_frequencies(
 
 
 def _escalation_episode_minutes(
-    assessments_by_zone: list[list[tuple[datetime, str]]]
+    assessments_by_zone: list[list[tuple[datetime, str]]],
 ) -> list[float]:
     """For each zone's ascending (timestamp, tier) sequence, the
     duration of every excursion where tier leaves "normal" and later
@@ -178,8 +179,9 @@ def compute_analytics(session: Session, deck_key: str | None = None) -> CrossSce
         ),
         industry_comparisons=Unavailable(
             reason=(
-                "Only one deck exists (Demo Plant Incidents) - there is no second industry "
-                "to compare against."
+                "Only one of the 6 registered decks (Demo Plant Incidents) has incident data - "
+                "the other 5 industry decks are structurally registered but empty, so there is "
+                "no second industry to compare against."
             )
         ),
     )

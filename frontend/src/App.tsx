@@ -84,6 +84,27 @@ const DiagnosticsPage = lazy(() =>
 const KnowledgeGraphPage = lazy(() =>
   import("./pages/KnowledgeGraphPage").then((m) => ({ default: m.KnowledgeGraphPage })),
 );
+const DecisionReportPage = lazy(() =>
+  import("./pages/DecisionReportPage").then((m) => ({ default: m.DecisionReportPage })),
+);
+const LiveIntegrationHubPage = lazy(() =>
+  import("./pages/LiveIntegrationHubPage").then((m) => ({ default: m.LiveIntegrationHubPage })),
+);
+const EnterpriseOperationsPage = lazy(() =>
+  import("./pages/EnterpriseOperationsPage").then((m) => ({ default: m.EnterpriseOperationsPage })),
+);
+const PlatformHealthPage = lazy(() =>
+  import("./pages/PlatformHealthPage").then((m) => ({ default: m.PlatformHealthPage })),
+);
+const CeoDashboardPage = lazy(() =>
+  import("./pages/CeoDashboardPage").then((m) => ({ default: m.CeoDashboardPage })),
+);
+const DecisionWorkspacePage = lazy(() =>
+  import("./pages/DecisionWorkspacePage").then((m) => ({ default: m.DecisionWorkspacePage })),
+);
+const ReplayComparisonPage = lazy(() =>
+  import("./pages/ReplayComparisonPage").then((m) => ({ default: m.ReplayComparisonPage })),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,6 +152,19 @@ function App() {
                         <Route path="/demo-launcher" element={<DemoLauncherPage />} />
                         <Route path="/diagnostics" element={<DiagnosticsPage />} />
                         <Route path="/knowledge-graph" element={<KnowledgeGraphPage />} />
+                        <Route
+                          path="/decision-report/:assessmentId"
+                          element={<DecisionReportPage />}
+                        />
+                        <Route path="/live-integration" element={<LiveIntegrationHubPage />} />
+                        <Route path="/enterprise" element={<EnterpriseOperationsPage />} />
+                        <Route path="/platform-health" element={<PlatformHealthPage />} />
+                        <Route path="/ceo-dashboard" element={<CeoDashboardPage />} />
+                        <Route
+                          path="/decision-workspace/:assessmentId"
+                          element={<DecisionWorkspacePage />}
+                        />
+                        <Route path="/replay-comparison" element={<ReplayComparisonPage />} />
                       </Routes>
                     </Suspense>
                   </DashboardLayout>

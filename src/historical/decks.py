@@ -14,6 +14,21 @@ second real deck later means authoring new real scenario YAML files
 and a new `HistoricalDeck` entry here - the infrastructure does not
 need to change.
 
+M28 Part 10 (Multi-Deck Evolution) asked this deck system to "support
+Oil Refinery, Steel, Chemical, Mining, Power, LNG decks, each with
+historical incidents." This platform still only has one real
+simulated plant, so those six industries get real, permanent
+registry entries (proving the multi-deck architecture is genuinely
+industry-generic, not hardcoded to one deck) with `incidents=[]` and
+an honest description disclosing that no incident data is modeled
+for them yet - the same "structure supported, not fabricated"
+disclosure pattern this codebase already uses elsewhere (e.g.
+`PlantMap.tsx`'s "Wind overlay (Roadmap)" legend entry). Every
+endpoint that iterates `HISTORICAL_DECKS` (matches, analytics)
+already handles an empty `incidents` list with zero special-casing -
+these entries exercise that generic path rather than working around
+it.
+
 Every field below is either copied verbatim from a real scenario file
 (`scenario_key`, and via `scenario_catalog.get_scenario_summary` the
 title/description/date/zone_ids), or authored narrative commentary
@@ -128,7 +143,61 @@ HISTORICAL_DECKS: list[HistoricalDeck] = [
                 ),
             ),
         ],
-    )
+    ),
+    HistoricalDeck(
+        key="oil-refinery",
+        name="Oil Refinery",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "an oil refinery scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
+    HistoricalDeck(
+        key="steel",
+        name="Steel",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "a steel plant scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
+    HistoricalDeck(
+        key="chemical",
+        name="Chemical",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "a chemical plant scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
+    HistoricalDeck(
+        key="mining",
+        name="Mining",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "a mining scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
+    HistoricalDeck(
+        key="power",
+        name="Power Generation",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "a power generation scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
+    HistoricalDeck(
+        key="lng",
+        name="LNG",
+        description=(
+            "Structure supported - no incident data modeled yet. This platform has not simulated "
+            "an LNG scenario, so no incidents are registered for this deck."
+        ),
+        incidents=[],
+    ),
 ]
 
 

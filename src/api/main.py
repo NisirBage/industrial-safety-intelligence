@@ -40,11 +40,13 @@ from src.api.common.errors import (
 from src.api.common.metrics import REQUEST_COUNT, REQUEST_DURATION
 from src.api.routers import (
     audit,
+    compliance,
     counterfactual,
     foresight,
     graph,
     health,
     historical,
+    ingest,
     metrics,
     permits,
     replay,
@@ -154,4 +156,6 @@ app.include_router(replay.router, prefix="/api/v1")
 app.include_router(historical.router, prefix="/api/v1")
 app.include_router(foresight.router, prefix="/api/v1")
 app.include_router(graph.router, prefix="/api/v1")
+app.include_router(compliance.router, prefix="/api/v1")
+app.include_router(ingest.router, prefix="/api/v1")
 app.include_router(metrics.router)

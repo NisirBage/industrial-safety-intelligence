@@ -28,6 +28,11 @@ const LINKS = [
   { to: "/demo-launcher", label: "Demo Launcher" },
   { to: "/diagnostics", label: "Diagnostics" },
   { to: "/knowledge-graph", label: "Knowledge Graph" },
+  { to: "/live-integration", label: "Live Integration Hub" },
+  { to: "/enterprise", label: "Enterprise Operations" },
+  { to: "/platform-health", label: "Platform Health" },
+  { to: "/ceo-dashboard", label: "CEO Dashboard" },
+  { to: "/replay-comparison", label: "Replay Comparison" },
 ];
 
 export function NavBar() {
@@ -46,6 +51,14 @@ export function NavBar() {
           </NavLink>
         ))}
       </nav>
+      <button
+        type="button"
+        className="global-search-trigger"
+        onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
+        title="Search everything (Ctrl+K / Cmd+K)"
+      >
+        Search <kbd>Ctrl</kbd>+<kbd>K</kbd>
+      </button>
       <button
         type="button"
         className="judge-quick-view-button"

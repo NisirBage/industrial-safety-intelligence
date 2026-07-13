@@ -5,6 +5,7 @@ import { TierBadge } from "../components/common/TierBadge";
 import { PipelineDiagram } from "../components/explainability/PipelineDiagram";
 import { useRiskAssessment } from "../hooks/useRiskAssessment";
 import { useZones } from "../hooks/useZones";
+import { buildAgentContributionReason } from "../lib/agentContributionReasons";
 import { formatTimestamp, zoneLabel } from "../lib/format";
 import { agentDisplayName, parseJustification } from "../lib/justification";
 import { agentStage, groupRulesByStage } from "../lib/pipelineStages";
@@ -100,6 +101,9 @@ export function ResearchModePage() {
                           ))}
                         </ul>
                       )}
+                      <p className="agent-contribution-reason">
+                        Reason: {buildAgentContributionReason(agentName, contribution, justification)}
+                      </p>
                     </div>
                   );
                 })}

@@ -22,7 +22,50 @@ branch_labels: Sequence[str] | None = None
 depends_on: Sequence[str] | None = None
 
 
+def _timescaledb_available(connection: sa.engine.Connection) -> bool:
+    """Whether the TimescaleDB extension is installed on this
+    PostgreSQL server (i.e. available to `CREATE EXTENSION`) - not
+    whether it is already enabled in this database. Queries
+    PostgreSQL's own catalog view rather than assuming the extension
+    exists, so this migration runs unmodified on a standard PostgreSQL
+    installation with no TimescaleDB package present at all (the
+    hackathon-judge scenario this check exists for) as well as on a
+    TimescaleDB-enabled server."""
+    result = connection.execute(
+        sa.text("SELECT 1 FROM pg_available_extensions WHERE name = 'timescaledb'")
+    ).first()
+    return result is not None
+
+
+def _convert_to_hypertable_if_supported(
+    connection: sa.engine.Connection, table_name: str, time_column: str
+) -> None:
+    """Enables the TimescaleDB extension (if not already enabled) and
+    converts `table_name` into a hypertable, but only when TimescaleDB
+    is actually installed on this PostgreSQL server. On a standard
+    PostgreSQL installation, this is a no-op and the table remains an
+    ordinary PostgreSQL table - every repository, the risk pipeline,
+    and every query against it behave identically either way, since a
+    hypertable is the same PostgreSQL table with additional
+    time-based chunking, not a different storage engine or a schema
+    change. `CREATE EXTENSION IF NOT EXISTS` and `create_hypertable`'s
+    own `if_not_exists => TRUE` make both calls safe to run again on a
+    database that already has the extension enabled and/or the table
+    already converted (a partially-applied migration, or upgrading an
+    existing TimescaleDB installation)."""
+    if not _timescaledb_available(connection):
+        return
+    connection.execute(sa.text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
+    connection.execute(
+        sa.text(
+            f"SELECT create_hypertable('{table_name}', '{time_column}', "
+            "chunk_time_interval => INTERVAL '1 day', if_not_exists => TRUE)"
+        )
+    )
+
+
 def upgrade() -> None:
+    connection = op.get_bind()
     op.create_table(
         "zones",
         sa.Column("zone_id", postgresql.UUID(as_uuid=True), primary_key=True),
@@ -164,7 +207,12 @@ def upgrade() -> None:
 
     # sensor_readings and risk_assessments are created as plain tables
     # first, then converted with create_hypertable() below - Timescale
-    # requires the table to already exist before that call.
+    # requires the table to already exist before that call. On a
+    # standard PostgreSQL installation with no TimescaleDB package
+    # available, that conversion step is skipped entirely (see
+    # `_convert_to_hypertable_if_supported`'s own docstring) and both
+    # tables remain ordinary PostgreSQL tables - every column, index,
+    # and constraint below applies identically either way.
     op.create_table(
         "sensor_readings",
         sa.Column("reading_id", postgresql.UUID(as_uuid=True), primary_key=True),
@@ -194,10 +242,7 @@ def upgrade() -> None:
             name="ck_sensor_readings_quality_flag",
         ),
     )
-    op.execute(
-        "SELECT create_hypertable('sensor_readings', 'timestamp', "
-        "chunk_time_interval => INTERVAL '1 day')"
-    )
+    _convert_to_hypertable_if_supported(connection, "sensor_readings", "timestamp")
     # DESC indexes need raw SQL - SQLAlchemy's declarative Index()
     # can't express column direction without a live column expression.
     op.execute(
@@ -227,10 +272,7 @@ def upgrade() -> None:
             "tier IN ('watch', 'elevated', 'critical')", name="ck_risk_assessments_tier"
         ),
     )
-    op.execute(
-        "SELECT create_hypertable('risk_assessments', 'timestamp', "
-        "chunk_time_interval => INTERVAL '1 day')"
-    )
+    _convert_to_hypertable_if_supported(connection, "risk_assessments", "timestamp")
 
     op.create_table(
         "audit_log",

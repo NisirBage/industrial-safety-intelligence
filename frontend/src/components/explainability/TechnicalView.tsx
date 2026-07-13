@@ -1,4 +1,5 @@
 import type { ReplayBookmark, RiskAssessment } from "../../api/types";
+import { buildAgentContributionReason } from "../../lib/agentContributionReasons";
 import { formatTimestamp } from "../../lib/format";
 import { agentDisplayName, type RiskJustification } from "../../lib/justification";
 import { RulesFiredList } from "./RulesFiredList";
@@ -63,6 +64,9 @@ export function TechnicalView({
                 <dt>confidence</dt>
                 <dd>{contribution.confidence}</dd>
               </dl>
+              <p className="agent-contribution-reason">
+                Reason: {buildAgentContributionReason(agentName, contribution, justification)}
+              </p>
             </div>
           ))}
 

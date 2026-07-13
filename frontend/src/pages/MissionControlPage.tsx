@@ -15,12 +15,12 @@ import { useRiskHistory } from "../hooks/useRiskHistory";
 import { useZoneWorkerCounts } from "../hooks/useZoneWorkerCounts";
 import { useZones } from "../hooks/useZones";
 import { buildActionQueue, type PrioritizedAction } from "../lib/actionPlaybook";
+import { buildAgentContributionReason } from "../lib/agentContributionReasons";
 import { averageCompoundScore, highestRiskZone, plantReadiness, type ZoneAssessment } from "../lib/executiveKpis";
 import { formatTimestamp, zoneLabel } from "../lib/format";
 import { agentDisplayName, parseJustification } from "../lib/justification";
 import { deriveTimelineEvents } from "../lib/operatorTimeline";
 import { activePermitTypesForZone } from "../lib/permitIcons";
-import { agentStage, groupRulesByStage } from "../lib/pipelineStages";
 import { deriveRecommendations } from "../lib/recommendations";
 import { latestTimestamp, worstTier } from "../lib/tier";
 
@@ -157,14 +157,12 @@ export function MissionControlPage() {
   const agentDecisions = topJustification
     ? AGENT_ORDER.filter((agentName) => agentName in topJustification.agentContributions).map((agentName) => {
         const contribution = topJustification.agentContributions[agentName];
-        const stage = agentStage(agentName);
-        const stageRules = groupRulesByStage(topJustification.rulesFired).find((entry) => entry.stage === stage);
         return {
           agentName,
           displayName: agentDisplayName(agentName),
           risk: contribution.risk,
           confidence: contribution.confidence,
-          rules: stageRules?.rules ?? [],
+          reason: buildAgentContributionReason(agentName, contribution, topJustification),
         };
       })
     : [];
@@ -315,11 +313,7 @@ export function MissionControlPage() {
                             {(agent.confidence * 100).toFixed(0)}%
                           </span>
                         </div>
-                        <p className="mission-control-agent-reason">
-                          {agent.rules.length > 0
-                            ? `Reason: ${agent.rules.join(", ")}`
-                            : "Reason: no rule fired for this agent this tick."}
-                        </p>
+                        <p className="mission-control-agent-reason">Reason: {agent.reason}</p>
                       </li>
                     ))}
                   </ul>
