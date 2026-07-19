@@ -56,4 +56,19 @@ def test_formatter_omits_correlation_fields_when_absent() -> None:
         logger.removeHandler(handler)
 
     payload = json.loads(lines[0])
-    assert payload == {"level": "INFO", "event": "plain message"}
+    assert set(payload.keys()) == {"timestamp", "level", "event"}
+    assert payload["level"] == "INFO"
+    assert payload["event"] == "plain message"
+    # Real ISO 8601, not just any string - proves it's machine-parseable.
+    datetime.fromisoformat(payload["timestamp"])
+
+
+def test_formatter_includes_request_id_when_present() -> None:
+    logger, handler, lines = _capture("test_formatter_includes_request_id_when_present")
+    try:
+        logger.info("request handled", extra={"request_id": "abc-123"})
+    finally:
+        logger.removeHandler(handler)
+
+    payload = json.loads(lines[0])
+    assert payload["request_id"] == "abc-123"

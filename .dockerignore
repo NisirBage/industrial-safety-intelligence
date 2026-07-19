@@ -1,0 +1,40 @@
+# Keeps the Docker build context small and never sends real secrets or
+# local-only artifacts to the Docker daemon. Both Dockerfiles use
+# `context: ..` (the repo root, see deploy/docker-compose*.yml), so
+# without this file the entire repo - including `.env` (real
+# credentials), `.venv`/`node_modules` (hundreds of MB), and `.git`
+# history - would be uploaded as build context on every build, even
+# though each Dockerfile's own COPY instructions are already selective.
+
+# Secrets - never sent to the Docker daemon, never baked into an image.
+.env
+.env.*
+!.env.example
+
+# Local Python virtualenv / caches
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local Postgres artifacts from this dev machine (not part of the app)
+.pgdata/
+.pgportable/
+
+# Frontend build artifacts / dependencies (each Dockerfile installs
+# its own inside the image via `npm ci`)
+frontend/node_modules
+frontend/dist
+
+# VCS / editor / OS noise
+.git
+.gitignore
+.vscode
+.idea
+*.log
+.DS_Store
+
+# Claude Code local config (not part of the deployed application)
+.claude

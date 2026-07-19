@@ -24,6 +24,7 @@ engine.
 
 import logging
 import time
+import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
@@ -116,7 +117,19 @@ async def log_and_measure_requests(
     ``/api/v1/risk/history/{zone_id}``) for metric labels, never the
     resolved path - a raw path would put a distinct UUID in every
     label value and make the metric's cardinality grow without bound.
+
+    Also assigns a request ID: reuses an incoming ``X-Request-ID``
+    header when a reverse proxy/load balancer already generated one
+    (so a request's identity is consistent end to end across
+    infrastructure hops), generates a fresh UUID4 otherwise. Attached
+    to every log line for this request via the same correlation-field
+    mechanism ``log_event`` uses for simulation ticks
+    (``src/config/logging.py``), and echoed back as a response header
+    so a client or log aggregator can correlate the two sides.
     """
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = request_id
+
     start = time.perf_counter()
     response = await call_next(request)
     duration = time.perf_counter() - start
@@ -135,7 +148,9 @@ async def log_and_measure_requests(
         request.url.path,
         response.status_code,
         duration * 1000,
+        extra={"request_id": request_id},
     )
+    response.headers["X-Request-ID"] = request_id
     return response
 
 

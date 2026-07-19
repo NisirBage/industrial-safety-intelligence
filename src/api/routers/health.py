@@ -48,6 +48,22 @@ class HealthResponse(BaseModel):
     migration_version: str | None = None
 
 
+def _check_database() -> HealthResponse:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            version_row = conn.execute(text("SELECT version_num FROM alembic_version")).first()
+    except Exception:
+        logger.exception("health check: database unreachable")
+        return HealthResponse(status="error", database="unreachable")
+
+    if version_row is None:
+        logger.error("health check: database reachable but no migration has been applied")
+        return HealthResponse(status="error", database="connected", migration_version=None)
+
+    return HealthResponse(status="ok", database="connected", migration_version=version_row[0])
+
+
 @router.get(
     "/health",
     response_model=HealthResponse,
@@ -61,22 +77,51 @@ def get_health(response: Response) -> HealthResponse:
     is reachable, and the schema is migrated to a known revision.
     Returns 503 rather than 200 if either database check fails, so a
     healthcheck or `depends_on: condition: service_healthy` correctly
-    treats an unmigrated or unreachable database as "not ready"."""
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-            version_row = conn.execute(text("SELECT version_num FROM alembic_version")).first()
-    except Exception:
-        logger.exception("health check: database unreachable")
+    treats an unmigrated or unreachable database as "not ready".
+    Kept as the original, backward-compatible endpoint every existing
+    Docker healthcheck/monitor already polls; `/live` and `/ready`
+    below give an orchestrator (Kubernetes, Railway, Render) the
+    conventional split this single endpoint conflates."""
+    result = _check_database()
+    if result.status != "ok":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return HealthResponse(status="error", database="unreachable")
+    return result
 
-    if version_row is None:
-        logger.error("health check: database reachable but no migration has been applied")
+
+@router.get("/live", response_model=HealthResponse)
+def get_liveness() -> HealthResponse:
+    """Liveness probe: "is the process itself still running and able
+    to handle a request at all?" - deliberately checks nothing external
+    (no database call), since a liveness probe's only job is telling an
+    orchestrator whether to restart the container. A liveness check
+    that depends on the database would cause an orchestrator to kill
+    and restart a perfectly healthy process during a transient DB
+    outage, which fixes nothing and just adds a restart storm on top of
+    the outage - the exact failure mode the liveness/readiness split
+    exists to avoid."""
+    return HealthResponse(status="ok", database="not_checked")
+
+
+@router.get(
+    "/ready",
+    response_model=HealthResponse,
+    responses={
+        503: {"model": HealthResponse, "description": "Database unreachable or unmigrated."}
+    },
+)
+def get_readiness(response: Response) -> HealthResponse:
+    """Readiness probe: "can this instance actually serve a real
+    request right now?" Unlike `/live`, this does check the database -
+    an orchestrator should stop routing traffic to (but not necessarily
+    restart) an instance that fails this. Same check as `/health`;
+    kept as a separate route rather than an alias so `/health` and
+    `/ready` remain independently documented endpoints matching the
+    conventional `/health` + `/ready` + `/live` trio, even though they
+    share one implementation today."""
+    result = _check_database()
+    if result.status != "ok":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return HealthResponse(status="error", database="connected", migration_version=None)
-
-    return HealthResponse(status="ok", database="connected", migration_version=version_row[0])
+    return result
 
 
 def _database_check() -> SubsystemCheck:

@@ -7,9 +7,16 @@
 # because the most common "works on my machine" failure is the
 # backend starting before Postgres accepts connections.
 #
-# Later milestones will add services here (nothing is added yet, per
-# M0's "zero business logic" rule): none required until the frontend
-# container in M8.
+# Production-deployment audit (see docs/architecture/deployment_readiness.md
+# and DEPLOYMENT.md): this file previously also provisioned `redis`/`chroma` services and
+# gated the backend's startup on both being healthy, even though no
+# code anywhere in `src/` has ever imported a Redis or Chroma client -
+# every hackathon judge running `docker compose up` was pulling and
+# waiting on two extra images that did nothing. Removed here to match
+# the exact principle `docker-compose.prod.yml`'s own header comment
+# already stated ("only what real code actually exercises today"):
+# add a service back only when a milestone builds its first real
+# consumer, not before.
 
 services:
   db:
@@ -28,26 +35,6 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  chroma:
-    image: chromadb/chroma
-    ports:
-      - "8001:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')\" || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build:
       context: ..
@@ -62,10 +49,6 @@ services:
       - "8000:8000"
     depends_on:
       db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      chroma:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\" || exit 1"]

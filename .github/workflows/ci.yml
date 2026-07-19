@@ -88,3 +88,22 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # Production-deployment audit: builds both production images on every
+  # push/PR (build-only, never pushed to a registry - this repo has no
+  # configured registry credentials) so a Dockerfile break is caught in
+  # CI rather than discovered the first time someone tries to deploy.
+  # Depends on both other jobs so a lint/type/test failure fails fast
+  # without spending CI minutes on a Docker build that would be
+  # academic anyway.
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f deploy/Dockerfile.backend -t isip-backend:ci .
+
+      - name: Build frontend image
+        run: docker build -f deploy/Dockerfile.frontend -t isip-frontend:ci .

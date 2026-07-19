@@ -60,6 +60,42 @@ def test_health_returns_503_without_a_migrated_database() -> None:
     command.upgrade(Config(str(ALEMBIC_INI)), "head")
 
 
+def test_liveness_never_checks_the_database() -> None:
+    """A liveness probe must stay `ok` even with an unmigrated/absent
+    database - it exists to answer "is the process alive", not "is the
+    database up", so an orchestrator doesn't restart a healthy process
+    over a transient DB outage."""
+    command.downgrade(Config(str(ALEMBIC_INI)), "base")
+
+    response = client.get("/api/v1/live")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+    command.upgrade(Config(str(ALEMBIC_INI)), "head")
+
+
+def test_readiness_returns_ok_with_a_migrated_database() -> None:
+    response = client.get("/api/v1/ready")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["database"] == "connected"
+    assert body["migration_version"] == "0002"
+
+
+def test_readiness_returns_503_without_a_migrated_database() -> None:
+    command.downgrade(Config(str(ALEMBIC_INI)), "base")
+
+    response = client.get("/api/v1/ready")
+
+    assert response.status_code == 503
+    assert response.json()["status"] == "error"
+
+    command.upgrade(Config(str(ALEMBIC_INI)), "head")
+
+
 def test_platform_health_reports_every_subsystem_as_ok_with_real_data() -> None:
     response = client.get("/api/v1/health/platform")
 

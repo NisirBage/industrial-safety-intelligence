@@ -13,7 +13,10 @@ pre-declaring config for systems that don't exist yet.
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 
 
 class Settings(BaseSettings):
@@ -23,6 +26,35 @@ class Settings(BaseSettings):
 
     app_name: str = "industrial-safety-intelligence"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/isip"
+
+    @field_validator("database_url")
+    @classmethod
+    def _validate_database_url(cls, value: str) -> str:
+        """Fails at startup with a clear message rather than at the
+        first query. `database_url` has a default, so a genuinely
+        empty environment still starts (against the bundled default
+        DB) - this validator exists for the "someone set `DATABASE_URL`
+        to something malformed" case (a typo'd scheme, a stray space,
+        an un-encoded special character in the password), which
+        previously surfaced as an opaque driver-level connection error
+        with no indication the DSN itself was the problem."""
+        try:
+            url = make_url(value)
+        except ArgumentError as exc:
+            raise ValueError(
+                f"DATABASE_URL is not a valid SQLAlchemy connection string: {exc}. "
+                "Expected a URL like "
+                "postgresql+psycopg://user:password@host:5432/dbname "
+                "(percent-encode any special character in the password, e.g. '#' -> '%23')."
+            ) from exc
+        if not url.drivername.startswith("postgresql"):
+            raise ValueError(
+                f"DATABASE_URL must use a postgresql driver, got {url.drivername!r}. "
+                "This platform's schema (JSONB columns, TimescaleDB-optional hypertables) "
+                "is PostgreSQL-specific."
+            )
+        return value
+
     # M8's dashboard dev server origins. Vite's default port is 5173,
     # falling to 5174 (or higher) when 5173 is already in use, so both
     # are listed for both localhost/127.0.0.1 forms rather than

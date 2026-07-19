@@ -223,6 +223,16 @@ curl http://localhost:8000/api/v1/health
 # {"status":"ok","database":"connected","migration_version":"0002"}
 ```
 
+## Production deployment
+
+For deploying beyond your own machine: **`DEPLOYMENT.md`** (Railway+Vercel,
+Render, or Docker-on-a-VPS, with exact commands and a rollback
+procedure for each), **`ENVIRONMENT.md`** (every variable documented),
+**`TROUBLESHOOTING.md`** (common failures and fixes), and
+`docs/architecture/deployment_readiness.md` (the full infrastructure
+audit this platform's deployment guidance is based on — what's
+actually required, what's deliberately not authenticated yet, and why).
+
 ## Docker deployment
 
 **Local development** (Postgres + Redis + Chroma + backend, hot-reload):
@@ -268,6 +278,8 @@ and `/scenario-builder/execute` (see below and
 | Endpoint | Description |
 |---|---|
 | `GET /api/v1/health` | Process, database connectivity, and migration version |
+| `GET /api/v1/ready` | Readiness probe - same check as `/health`, under the conventional name an orchestrator's readiness gate expects |
+| `GET /api/v1/live` | Liveness probe - process-only, never checks the database, so a transient DB outage doesn't trigger an unnecessary restart |
 | `GET /api/v1/zones` | Human-readable zone list (id, name, section, classification) |
 | `GET /api/v1/zones/{zone_id}/workers/count` | Current headcount in a zone, from `WorkerRepository` |
 | `GET /api/v1/zones/{zone_id}/sensors` | Every sensor monitoring a zone (Scenario Builder) |

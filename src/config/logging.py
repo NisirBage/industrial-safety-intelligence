@@ -11,22 +11,33 @@ A.13 explicitly allows to be "stdlib logging with a JSON formatter."
 
 import json
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
-_CORRELATION_FIELDS = ("tick_id", "sim_time", "agent", "zone")
+_CORRELATION_FIELDS = ("tick_id", "sim_time", "agent", "zone", "request_id")
 
 
 class JSONFormatter(logging.Formatter):
     """Renders each log record as one JSON object.
 
-    Deliberately not a general-purpose formatter - it emits exactly
-    the field set A.13 specifies (level, event, plus whichever
-    correlation fields a given call site provided) and nothing else.
+    Emits A.13's original field set (level, event, plus whichever
+    domain correlation fields a given call site provided) plus two
+    production-deployment additions: an always-present UTC
+    ``timestamp`` (every log aggregator needs one, and the stdlib
+    default formatter's ``asctime`` isn't machine-sortable/timezone-safe
+    the way an ISO 8601 string is), and ``request_id`` folded into the
+    existing correlation-field mechanism so an HTTP request's log lines
+    can be correlated the same way a simulation tick's already are (see
+    ``src/api/main.py``'s request-ID middleware) - one mechanism, two
+    kinds of correlation, not a second formatter.
     """
 
     def format(self, record: logging.LogRecord) -> str:
-        payload: dict[str, Any] = {"level": record.levelname, "event": record.getMessage()}
+        payload: dict[str, Any] = {
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
+            "level": record.levelname,
+            "event": record.getMessage(),
+        }
         for field_name in _CORRELATION_FIELDS:
             value = getattr(record, field_name, None)
             if value is not None:
